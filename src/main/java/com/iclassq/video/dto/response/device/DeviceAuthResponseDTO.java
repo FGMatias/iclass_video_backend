@@ -1,5 +1,6 @@
 package com.iclassq.video.dto.response.device;
 
+import com.iclassq.video.dto.response.video.VideoSimpleDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,28 +27,17 @@ public class DeviceAuthResponseDTO {
     private Integer companyId;
     private String companyName;
     private DeviceConfig config;
-    private List<VideoInfo> videos;
+    private List<VideoSimpleDTO > playlist;
     private LocalDateTime lastSync;
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     @Builder
     public static class DeviceConfig {
         private Integer autoSyncInterval;
         private Boolean autoPlay;
         private Boolean loopPlayList;
         private Integer volume;
-    }
-
-    @Data
-    @Builder
-    public static class VideoInfo {
-        private Integer id;
-        private String name;
-        private String urlVideo;
-        private String thumbnail;
-        private Integer duration;
-        private Integer orden;
-        private Long fileSize;
-        private String checksum;
     }
 }

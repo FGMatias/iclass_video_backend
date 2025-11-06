@@ -1,5 +1,6 @@
 package com.iclassq.video.dto.response.area;
 
+import com.iclassq.video.dto.response.video.VideoSimpleDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,25 +19,16 @@ public class AreaDetailDTO {
     private String description;
     private Boolean isActive;
     private BranchInfo branch;
-    private List<VideoInfo> videos;
+    private List<VideoSimpleDTO> videos;
     private LocalDateTime createdAt;
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     @Builder
     public static class BranchInfo {
         private Integer id;
         private String name;
         private String companyName;
-    }
-
-    @Data
-    @Builder
-    public static class VideoInfo {
-        private Integer id;
-        private String name;
-        private String urlVideo;
-        private String thumbnail;
-        private Integer duration;
-        private Integer orden;
     }
 }

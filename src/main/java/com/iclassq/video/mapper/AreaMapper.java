@@ -4,6 +4,7 @@ import com.iclassq.video.dto.request.area.CreateAreaDTO;
 import com.iclassq.video.dto.request.area.UpdateAreaDTO;
 import com.iclassq.video.dto.response.area.AreaDetailDTO;
 import com.iclassq.video.dto.response.area.AreaResponseDTO;
+import com.iclassq.video.dto.response.video.VideoSimpleDTO;
 import com.iclassq.video.entity.Area;
 import com.iclassq.video.entity.AreaVideo;
 import com.iclassq.video.entity.Branch;
@@ -65,7 +66,7 @@ public class AreaMapper {
                         .build())
                 .videos(areaVideos.stream()
                         .sorted(Comparator.comparing(AreaVideo::getOrden))
-                        .map(av -> AreaDetailDTO.VideoInfo.builder()
+                        .map(av -> VideoSimpleDTO.builder()
                                 .id(av.getVideo().getId())
                                 .name(av.getVideo().getName())
                                 .urlVideo(av.getVideo().getUrlVideo())
