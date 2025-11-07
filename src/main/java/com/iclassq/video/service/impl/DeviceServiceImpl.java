@@ -5,51 +5,36 @@ import com.iclassq.video.dto.request.device.RegisterDeviceDTO;
 import com.iclassq.video.dto.response.device.DeviceAuthResponseDTO;
 import com.iclassq.video.dto.response.device.DeviceRegisterResponseDTO;
 import com.iclassq.video.dto.response.device.DeviceResponseDTO;
-import com.iclassq.video.dto.response.video.VideoSimpleDTO;
 import com.iclassq.video.entity.*;
 import com.iclassq.video.exception.DeviceNotAssignedException;
 import com.iclassq.video.exception.DuplicateEntityException;
 import com.iclassq.video.exception.ResourceNotFoundException;
+import com.iclassq.video.mapper.DeviceMapper;
 import com.iclassq.video.repository.*;
 import com.iclassq.video.security.JwtService;
 import com.iclassq.video.service.DeviceService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class DeviceServiceImpl implements DeviceService {
 
-    @Autowired
-    private DeviceRepository deviceRepository;
-
-    @Autowired
-    private DeviceAreaRepository deviceAreaRepository;
-
-    @Autowired
-    private AreaRepository areaRepository;
-
-    @Autowired
-    private AreaVideoRepository areaVideoRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private DeviceTypeRepository deviceTypeRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private JwtService jwtService;
+    private final DeviceRepository deviceRepository;
+    private final DeviceAreaRepository deviceAreaRepository;
+    private final AreaRepository areaRepository;
+    private final AreaVideoRepository areaVideoRepository;
+    private final UserRepository userRepository;
+    private final DeviceTypeRepository deviceTypeRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final DeviceMapper deviceMapper;
 
     @Override
     @Transactional
@@ -69,16 +54,7 @@ public class DeviceServiceImpl implements DeviceService {
 
         String hashedPassword = passwordEncoder.encode(dto.getDevicePassword());
 
-        Device device = Device.builder()
-                .user(admin)
-                .deviceType(deviceType)
-                .deviceName(dto.getDeviceName())
-                .deviceIdentifier(dto.getDeviceIdentifier())
-                .deviceUsername(dto.getDeviceUsername())
-                .devicePassword(hashedPassword)
-                .isActive(true)
-                .build();
-
+        Device device = deviceMapper.toEntity(dto, deviceType, admin, hashedPassword);
         Device savedDevice = deviceRepository.save(device);
 
         DeviceArea assignment = DeviceArea.builder()
@@ -90,16 +66,11 @@ public class DeviceServiceImpl implements DeviceService {
 
         deviceAreaRepository.save(assignment);
 
-        return DeviceRegisterResponseDTO.builder()
-                .id(savedDevice.getId())
-                .deviceName(savedDevice.getDeviceName())
-                .deviceUsername(savedDevice.getDeviceUsername())
-                .devicePassword(savedDevice.getDevicePassword())
-                .deviceType(deviceType.getName())
-                .areaId(area.getId())
-                .areaName(area.getName())
-                .message("Dispositivo registrado correctamente.")
-                .build();
+        return deviceMapper.toRegisterResponseDTO(
+                savedDevice,
+                dto.getDevicePassword(),
+                area
+        );
     }
 
     @Override
@@ -131,46 +102,14 @@ public class DeviceServiceImpl implements DeviceService {
                 )
         );
 
-        Area area = currentAssignment.getArea();
-        Branch branch = area.getBranch();
-        Company company = branch.getCompany();
+        List<AreaVideo> areaVideos = areaVideoRepository.findByAreaWithVideos(currentAssignment.getArea().getId());
 
-        List<AreaVideo> areaVideos = areaVideoRepository.findByAreaWithVideos(area.getId());
-
-        List<VideoSimpleDTO> playlist = areaVideos.stream()
-                .sorted(Comparator.comparing(AreaVideo::getOrden))
-                .map(av -> VideoSimpleDTO.builder()
-                        .id(av.getVideo().getId())
-                        .name(av.getVideo().getName())
-                        .urlVideo(av.getVideo().getUrlVideo())
-                        .thumbnail(av.getVideo().getThumbnail())
-                        .duration(av.getVideo().getDuration())
-                        .orden(av.getOrden())
-                        .build())
-                .collect(Collectors.toList());
-
-        return DeviceAuthResponseDTO.builder()
-                .token(token)
-                .type("Bearer")
-                .id(device.getId())
-                .deviceName(device.getDeviceName())
-                .deviceUsername(device.getDeviceUsername())
-                .deviceType(device.getDeviceType().getName())
-                .areaId(area.getId())
-                .areaName(area.getName())
-                .branchId(branch.getId())
-                .branchName(branch.getName())
-                .companyId(company.getId())
-                .companyName(company.getName())
-                .config(DeviceAuthResponseDTO.DeviceConfig.builder()
-                        .autoSyncInterval(21600)
-                        .autoPlay(true)
-                        .loopPlayList(true)
-                        .volume(80)
-                        .build())
-                .playlist(playlist)
-                .lastSync(device.getLastSync())
-                .build();
+        return deviceMapper.toAuthResponseDTO(
+                device,
+                currentAssignment,
+                areaVideos,
+                token
+        );
     }
 
     @Override
@@ -212,35 +151,7 @@ public class DeviceServiceImpl implements DeviceService {
                 .findCurrentAssignment(deviceId)
                 .orElse(null);
 
-        DeviceResponseDTO.DeviceResponseDTOBuilder builder = DeviceResponseDTO.builder()
-                .id(device.getId())
-                .deviceName(device.getDeviceName())
-                .deviceIdentifier(device.getDeviceIdentifier())
-                .deviceUsername(device.getDeviceUsername())
-                .deviceType(device.getDeviceType().getName())
-                .isActive(device.getIsActive())
-                .lastLogin(device.getLastLogin())
-                .lastSync(device.getLastSync())
-                .createdAt(device.getCreatedAt());
-
-        if (currentAssignment != null) {
-            Area area = currentAssignment.getArea();
-            Branch branch = area.getBranch();
-            Company company = branch.getCompany();
-
-            builder
-                    .currentAreaId(area.getId())
-                    .currentAreaName(area.getName())
-                    .currentBranchName(branch.getName())
-                    .currentCompanyName(company.getName())
-                    .assignedAt(currentAssignment.getAssignedAt());
-        }
-
-        if (device.getUser() != null) {
-            builder.configuredByUsername(device.getUser().getUsername());
-        }
-
-        return builder.build();
+        return deviceMapper.toResponseDTO(device, currentAssignment);
     }
 
     @Override

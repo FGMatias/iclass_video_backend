@@ -22,7 +22,7 @@ public class Video {
     @JoinColumn(name = "company_id", referencedColumnName = "id")
     private Company company;
 
-    @Column(name = "name")
+    @Column(name = "name", length = 100)
     private String name;
 
     @Column(name = "url_video")

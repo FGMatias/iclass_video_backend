@@ -22,13 +22,13 @@ public class Branch {
     @JoinColumn(name = "company_id", referencedColumnName = "id")
     private Company company;
 
-    @Column(name = "name")
+    @Column(name = "name", length = 100)
     private String name;
 
-    @Column(name = "direction")
+    @Column(name = "direction", columnDefinition = "TEXT")
     private String direction;
 
-    @Column(name = "phone")
+    @Column(name = "phone", length = 9)
     private String phone;
 
     @Column(name = "is_active")

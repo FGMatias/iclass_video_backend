@@ -18,22 +18,22 @@ public class Company {
     @Column(name = "id")
     private Integer id;
 
-    @Column(name = "name")
+    @Column(name = "name", length = 100)
     private String name;
 
-    @Column(name = "phone")
+    @Column(name = "phone", length = 9)
     private String phone;
 
-    @Column(name = "ruc")
+    @Column(name = "ruc", length = 20)
     private String ruc;
 
-    @Column(name = "direction")
+    @Column(name = "direction", columnDefinition = "TEXT")
     private String direction;
 
-    @Column(name = "email")
+    @Column(name = "email", columnDefinition = "TEXT")
     private String email;
 
-    @Column(name = "logo")
+    @Column(name = "logo", columnDefinition = "TEXT")
     private String logo;
 
     @Column(name = "is_active")

@@ -14,11 +14,15 @@ import java.util.stream.Collectors;
 @Component
 public class UserMapper {
 
-    public User toEntity(CreateUserDTO dto, Role role) {
+    public User toEntity(
+            CreateUserDTO dto,
+            Role role,
+            String hashedPassword
+    ) {
         return User.builder()
                 .role(role)
                 .username(dto.getUsername())
-                .password(dto.getPassword())
+                .password(hashedPassword)
                 .name(dto.getName())
                 .paternalSurname(dto.getPaternalSurname())
                 .maternalSurname(dto.getMaternalSurname())
@@ -31,7 +35,6 @@ public class UserMapper {
 
     public void updateEntity(User user, UpdateUserDTO dto) {
         if (dto.getUsername() != null) user.setUsername(dto.getUsername());
-        if (dto.getPassword() != null) user.setPassword(dto.getPassword());
         if (dto.getName() != null) user.setName(dto.getName());
         if (dto.getPaternalSurname() != null) user.setPaternalSurname(dto.getPaternalSurname());
         if (dto.getMaternalSurname() != null) user.setMaternalSurname(dto.getMaternalSurname());

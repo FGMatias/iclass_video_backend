@@ -22,7 +22,7 @@ public class Area {
     @JoinColumn(name = "branch_id", referencedColumnName = "id")
     private Branch branch;
 
-    @Column(name = "name")
+    @Column(name = "name", length = 100)
     private String name;
 
     @Column(name = "description")

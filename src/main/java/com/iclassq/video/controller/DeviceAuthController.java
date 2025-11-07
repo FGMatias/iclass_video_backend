@@ -6,8 +6,10 @@ import com.iclassq.video.dto.request.device.RegisterDeviceDTO;
 import com.iclassq.video.dto.response.device.DeviceAuthResponseDTO;
 import com.iclassq.video.dto.response.device.DeviceRegisterResponseDTO;
 import com.iclassq.video.dto.response.device.DeviceResponseDTO;
+import com.iclassq.video.security.SecurityUtils;
 import com.iclassq.video.service.DeviceService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,18 +19,16 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/devices")
+@RequiredArgsConstructor
 public class DeviceAuthController {
 
-    @Autowired
-    private DeviceService deviceService;
+    private final DeviceService deviceService;
+    private final SecurityUtils securityUtils;
 
     @PostMapping("/register")
     @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
-    public ResponseEntity<DeviceRegisterResponseDTO> register(
-            @RequestBody @Valid RegisterDeviceDTO dto,
-            Authentication authentication
-    ) {
-        Integer adminUserId = getCurrentUserId(authentication);
+    public ResponseEntity<DeviceRegisterResponseDTO> register(@RequestBody @Valid RegisterDeviceDTO dto) {
+        Integer adminUserId = securityUtils.getCurrentUserId();
         DeviceRegisterResponseDTO response = deviceService.register(dto, adminUserId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -47,10 +47,9 @@ public class DeviceAuthController {
     @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
     public ResponseEntity<Void> reassign(
             @PathVariable Integer deviceId,
-            @RequestBody @Valid DeviceAssignAreaDTO dto,
-            Authentication authentication
+            @RequestBody @Valid DeviceAssignAreaDTO dto
     ) {
-        Integer adminUserId = getCurrentUserId(authentication);
+        Integer adminUserId = securityUtils.getCurrentUserId();
         deviceService.reassign(deviceId, dto, adminUserId);
         return ResponseEntity.ok().build();
     }
@@ -75,9 +74,4 @@ public class DeviceAuthController {
         deviceService.updateLastSync(deviceId);
         return ResponseEntity.ok().build();
     }
-
-    private Integer getCurrentUserId(Authentication authentication) {
-        return 1;
-    }
-
 }
