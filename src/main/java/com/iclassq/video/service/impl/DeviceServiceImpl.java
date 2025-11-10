@@ -44,15 +44,6 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public DeviceResponseDTO findById(Integer id) {
-        Device device = deviceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Dispositivo", id));
-
-        return deviceMapper.toResponseDTO(device);
-    }
-
-    @Override
     @Transactional
     public DeviceResponseDTO create(CreateDeviceDTO dto, Integer adminUserId) {
         if (deviceRepository.existsByDeviceUsername(dto.getDeviceUsername())) {
@@ -82,7 +73,7 @@ public class DeviceServiceImpl implements DeviceService {
 
         deviceAreaRepository.save(assignment);
 
-        return deviceMapper.toResponseDTO(savedDevice);
+        return deviceMapper.toResponseDTO(savedDevice, assignment);
     }
 
     @Override
@@ -96,14 +87,20 @@ public class DeviceServiceImpl implements DeviceService {
             }
         }
 
-        DeviceType deviceType = deviceTypeRepository.findById(dto.getDeviceTypeId())
+        DeviceType deviceType = null;
+        if (dto.getDeviceTypeId() != null) {
+            deviceType = deviceTypeRepository.findById(dto.getDeviceTypeId())
                         .orElseThrow(() -> new ResourceNotFoundException("Tipo de dispositivo", dto.getDeviceTypeId()));
+        }
 
         deviceMapper.updateEntity(device, dto, deviceType);
-
         Device updatedDevice = deviceRepository.save(device);
 
-        return deviceMapper.toResponseDTO(updatedDevice);
+        DeviceArea currentAssignment = deviceAreaRepository
+                .findCurrentAssignment(id)
+                .orElse(null);
+
+        return deviceMapper.toResponseDTO(updatedDevice, currentAssignment);
     }
 
     @Override
@@ -114,6 +111,25 @@ public class DeviceServiceImpl implements DeviceService {
         }
 
         deviceRepository.deleteById(id);
+    }
+
+    @Override
+    public void activate(Integer id) {
+        Device device = deviceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Dispositivo", id));
+
+        device.setIsActive(true);
+        deviceRepository.save(device);
+    }
+
+    @Override
+    @Transactional
+    public void deactivate(Integer id) {
+        Device device = deviceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Dispositivo", id));
+
+        device.setIsActive(false);
+        deviceRepository.save(device);
     }
 
     @Override
@@ -169,25 +185,6 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     @Override
-    public void activate(Integer id) {
-        Device device = deviceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Dispositivo", id));
-
-        device.setIsActive(true);
-        deviceRepository.save(device);
-    }
-
-    @Override
-    @Transactional
-    public void deactivate(Integer id) {
-        Device device = deviceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Dispositivo", id));
-
-        device.setIsActive(false);
-        deviceRepository.save(device);
-    }
-
-    @Override
     @Transactional
     public void updateLastSync(Integer id) {
         Device device = deviceRepository.findById(id)
@@ -234,5 +231,16 @@ public class DeviceServiceImpl implements DeviceService {
                 areaVideos,
                 token
         );
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(Integer id, String newPassword) {
+        Device device = deviceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Dispositivo", id));
+
+        String hashedPassword = passwordEncoder.encode(newPassword);
+        device.setDevicePassword(hashedPassword);
+        deviceRepository.save(device);
     }
 }

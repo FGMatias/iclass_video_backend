@@ -1,9 +1,11 @@
 package com.iclassq.video.controller;
 
+import com.iclassq.video.dto.request.auth.ResetPasswordDTO;
 import com.iclassq.video.dto.request.device.CreateDeviceDTO;
 import com.iclassq.video.dto.request.device.DeviceAssignAreaDTO;
 import com.iclassq.video.dto.request.device.UpdateDeviceDTO;
 import com.iclassq.video.dto.response.device.DeviceResponseDTO;
+import com.iclassq.video.entity.DeviceArea;
 import com.iclassq.video.security.SecurityUtils;
 import com.iclassq.video.service.DeviceService;
 import jakarta.validation.Valid;
@@ -13,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.awt.*;
 import java.util.List;
 
 @RestController
@@ -34,7 +35,7 @@ public class DeviceController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
     public ResponseEntity<DeviceResponseDTO> findById(@PathVariable Integer id) {
-        DeviceResponseDTO response = deviceService.findById(id);
+        DeviceResponseDTO response = deviceService.getDeviceWithCurrentArea(id);
         return ResponseEntity.ok(response);
     }
 
@@ -63,35 +64,45 @@ public class DeviceController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{deviceId}/reassign")
+    @PutMapping("/{id}/reassign")
     @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
     public ResponseEntity<Void> reassign(
-            @PathVariable Integer deviceId,
+            @PathVariable Integer id,
             @RequestBody @Valid DeviceAssignAreaDTO dto
     ) {
         Integer adminUserId = securityUtils.getCurrentUserId();
-        deviceService.reassign(deviceId, dto, adminUserId);
+        deviceService.reassign(id, dto, adminUserId);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{deviceId}")
+    @PutMapping("/{id}/deactivate")
     @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
-    public ResponseEntity<DeviceResponseDTO> getWithCurrentArea(@PathVariable Integer deviceId) {
-        DeviceResponseDTO response = deviceService.getDeviceWithCurrentArea(deviceId);
+    public ResponseEntity<Void> deactivate(@PathVariable Integer id) {
+        deviceService.deactivate(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/sync")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> updateSync(@PathVariable Integer id) {
+        deviceService.updateLastSync(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/history")
+    @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
+    public ResponseEntity<List<DeviceArea>> getHistory(@PathVariable Integer id) {
+        List<DeviceArea> response = deviceService.getHistory(id);
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{deviceId}/deactivate")
+    @PutMapping("/{id}/reset-password")
     @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
-    public ResponseEntity<Void> deactivate(@PathVariable Integer deviceId) {
-        deviceService.deactivate(deviceId);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/{deviceId}/sync")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> updateSync(@PathVariable Integer deviceId) {
-        deviceService.updateLastSync(deviceId);
+    public ResponseEntity<Void> resetPassword(
+            @PathVariable Integer id,
+            @RequestBody @Valid ResetPasswordDTO dto
+    ) {
+        deviceService.resetPassword(id, dto.getNewPassword());
         return ResponseEntity.ok().build();
     }
 }

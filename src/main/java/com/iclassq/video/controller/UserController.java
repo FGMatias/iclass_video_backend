@@ -1,5 +1,6 @@
 package com.iclassq.video.controller;
 
+import com.iclassq.video.dto.request.auth.ResetPasswordDTO;
 import com.iclassq.video.dto.request.user.*;
 import com.iclassq.video.dto.response.user.UserResponseDTO;
 import com.iclassq.video.service.UserService;

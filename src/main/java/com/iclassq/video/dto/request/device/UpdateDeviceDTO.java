@@ -16,8 +16,11 @@ public class UpdateDeviceDTO {
 
     private Integer deviceTypeId;
 
-    @Size(min = 4, max = 50)
-    @Pattern(regexp = "^[a-zA-Z0-9._-]+$")
+    @Size(min = 4, max = 50, message = "Username debe tener entre 4 y 50 caracteres")
+    @Pattern(
+        regexp = "^[a-zA-Z0-9_-]+$",
+        message = "Username solo puede contener letras, números, guiones y guiones bajos"
+    )
     private String deviceUsername;
 
     private Boolean isActive;

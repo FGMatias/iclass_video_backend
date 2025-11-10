@@ -30,7 +30,7 @@ public class Device {
     @Column(name = "device_name", nullable = false, length = 100)
     private String deviceName;
 
-    @Column(name = "device_identifier", unique = true, length = 100)
+    @Column(name = "device_identifier", unique = true, nullable = false, length = 100, updatable = false)
     private String deviceIdentifier;
 
     @Column(name = "device_username", unique = true, nullable = false, length = 100)
