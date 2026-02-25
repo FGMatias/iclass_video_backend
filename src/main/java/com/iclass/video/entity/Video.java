@@ -34,6 +34,21 @@ public class Video {
     @Column(name = "thumbnail")
     private String thumbnail;
 
+    @Column(name = "file_path", length = 500)
+    private String filePath;
+
+    @Column(name = "file_name")
+    private String fileName;
+
+    @Column(name = "file_size")
+    private Long fileSize;
+
+    @Column(name = "file_extension", length = 10)
+    private String fileExtension;
+
+    @Column(name = "checksum", length = 64)
+    private String checksum;
+
     @Column(name = "is_active")
     private Boolean isActive;
 
