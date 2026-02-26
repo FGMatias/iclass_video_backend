@@ -16,7 +16,9 @@ public interface AreaVideoRepository extends JpaRepository<AreaVideo, Integer> {
             "ORDER BY av.orden ASC")
     List<AreaVideo> findByAreaWithVideos(@Param("areaId") Integer areaId);
 
-    List<AreaVideo> findByArea_Id(Integer areaId);
+    boolean existsByVideo_IdAndArea_Id(Integer videoId, Integer areaId);
 
-    void deleteByArea_Id(Integer areaId);
+    @Query("SELECT DISTINCT av.area.id FROM AreaVideo av " +
+            "WHERE av.video.id = :videoId")
+    List<Integer> findAreaIdsByVideoId(@Param("videoId") Integer videoId);
 }

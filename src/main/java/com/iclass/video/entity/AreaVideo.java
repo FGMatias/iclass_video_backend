@@ -19,16 +19,22 @@ public class AreaVideo {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "video_id", referencedColumnName = "id")
+    @JoinColumn(name = "video_id", referencedColumnName = "id", nullable = false)
     private Video video;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "area_id", referencedColumnName = "id")
+    @JoinColumn(name = "area_id", referencedColumnName = "id", nullable = false)
     private Area area;
 
     @Column(name = "orden")
     private Integer orden;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        if (orden == null) orden = 0;
+    }
 }

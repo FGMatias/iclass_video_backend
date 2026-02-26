@@ -4,6 +4,7 @@ import com.iclass.video.dto.request.video.CreateVideoDTO;
 import com.iclass.video.dto.request.video.UpdateVideoDTO;
 import com.iclass.video.dto.response.video.VideoResponseDTO;
 import com.iclass.video.dto.response.video.VideoSimpleDTO;
+import com.iclass.video.dto.response.video.VideoUploadResponseDTO;
 import com.iclass.video.entity.Company;
 import com.iclass.video.entity.Video;
 import org.springframework.stereotype.Component;
@@ -14,23 +15,16 @@ import java.util.stream.Collectors;
 @Component
 public class VideoMapper {
 
-    public Video toEntity(CreateVideoDTO dto, Company company) {
+    public Video toEntityForUpload(String name, Company company) {
         return Video.builder()
                 .company(company)
-                .name(dto.getName())
-                .urlVideo(dto.getUrlVideo())
-                .duration(dto.getDuration())
-                .thumbnail(dto.getThumbnail())
+                .name(name)
                 .isActive(true)
                 .build();
     }
 
     public void updateEntity(Video video, UpdateVideoDTO dto) {
-        if (dto.getName() != null) video.setName(dto.getName());
-        if (dto.getUrlVideo() != null) video.setUrlVideo(dto.getUrlVideo());
-        if (dto.getDuration() != null) video.setDuration(dto.getDuration());
-        if (dto.getThumbnail() != null) video.setThumbnail(dto.getThumbnail());
-        if (dto.getIsActive() != null) video.setIsActive(dto.getIsActive());
+        if (dto.getName() != null && !dto.getName().isBlank()) video.setName(dto.getName());
     }
 
     public VideoResponseDTO toResponseDTO(Video video) {
@@ -40,11 +34,31 @@ public class VideoMapper {
                 .companyName(video.getCompany().getName())
                 .name(video.getName())
                 .urlVideo(video.getUrlVideo())
-                .duration(video.getDuration())
                 .thumbnail(video.getThumbnail())
+                .duration(video.getDuration())
+                .fileSize(video.getFileSize())
+                .fileExtension(video.getFileExtension())
+                .checksum(video.getChecksum())
                 .isActive(video.getIsActive())
                 .createdAt(video.getCreatedAt())
                 .updatedAt(video.getUpdatedAt())
+                .build();
+    }
+
+    public VideoUploadResponseDTO toUploadResponseDTO(Video video) {
+        return VideoUploadResponseDTO.builder()
+                .id(video.getId())
+                .companyId(video.getCompany().getId())
+                .companyName(video.getCompany().getName())
+                .name(video.getName())
+                .urlVideo(video.getUrlVideo())
+                .thumbnail(video.getThumbnail())
+                .duration(video.getDuration())
+                .fileSize(video.getFileSize())
+                .fileExtension(video.getFileExtension())
+                .checksum(video.getChecksum())
+                .isActive(video.getIsActive())
+                .createdAt(video.getCreatedAt())
                 .build();
     }
 
@@ -55,6 +69,8 @@ public class VideoMapper {
                 .urlVideo(video.getUrlVideo())
                 .thumbnail(video.getThumbnail())
                 .duration(video.getDuration())
+                .fileSize(video.getFileSize())
+                .checksum(video.getChecksum())
                 .build();
     }
 

@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class VideoResponseDTO {
+public class VideoUploadResponseDTO {
     private Integer id;
     private Integer companyId;
     private String companyName;
@@ -24,5 +24,4 @@ public class VideoResponseDTO {
     private String checksum;
     private Boolean isActive;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }
