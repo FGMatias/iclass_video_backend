@@ -1,6 +1,5 @@
 package com.iclass.video.mapper;
 
-import com.iclass.video.dto.request.video.CreateVideoDTO;
 import com.iclass.video.dto.request.video.UpdateVideoDTO;
 import com.iclass.video.dto.response.video.VideoResponseDTO;
 import com.iclass.video.dto.response.video.VideoSimpleDTO;

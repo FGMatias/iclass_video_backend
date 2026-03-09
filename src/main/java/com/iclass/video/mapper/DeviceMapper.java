@@ -116,6 +116,8 @@ public class DeviceMapper {
                         .urlVideo(av.getVideo().getUrlVideo())
                         .thumbnail(av.getVideo().getThumbnail())
                         .duration(av.getVideo().getDuration())
+                        .fileSize(av.getVideo().getFileSize())
+                        .checksum(av.getVideo().getChecksum())
                         .orden(av.getOrden())
                         .build())
                 .collect(Collectors.toList());

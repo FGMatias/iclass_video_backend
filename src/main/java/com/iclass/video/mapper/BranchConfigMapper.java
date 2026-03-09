@@ -33,7 +33,7 @@ public class BranchConfigMapper {
                 .branchId(config.getBranch().getId())
                 .branchName(config.getBranch().getName())
                 .companyName(config.getBranch().getCompany().getName())
-                .category(config.getConfigCategory())
+                .category(config.getCategory())
                 .configKey(config.getConfigKey())
                 .configValue(config.getConfigValue())
                 .configType(config.getConfigType())
