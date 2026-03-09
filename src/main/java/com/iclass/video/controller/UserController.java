@@ -25,8 +25,15 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
-    public ResponseEntity<List<UserResponseDTO>> findAll() {
-        List<UserResponseDTO> response = userService.findAll();
+    public ResponseEntity<List<UserResponseDTO>> findAll(@RequestParam(required = false) Integer roleId) {
+        List<UserResponseDTO> response;
+
+        if (roleId != null) {
+            response = userService.findByRoleId(roleId);
+        } else {
+            response = userService.findAll();
+        }
+
         return ResponseEntity.ok(response);
     }
 

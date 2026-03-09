@@ -51,6 +51,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<UserResponseDTO> findByRoleId(Integer roleId) {
+        List<User> users = userRepository.findByRolId(roleId);
+        return userMapper.toResponseDTOList(users);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public UserResponseDTO findById(Integer id) {
         User user = userRepository.findById(id)

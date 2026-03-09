@@ -7,7 +7,6 @@ import com.iclass.video.security.SecurityUtils;
 import com.iclass.video.service.VideoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.catalina.connector.Response;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,8 +38,11 @@ public class VideoController {
 
     @GetMapping("/{id}/stream")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Resource> streamVideo(@PathVariable Integer id) {
-        return videoService.streamVideo(id);
+    public ResponseEntity<Resource> streamVideo(
+            @PathVariable Integer id,
+            @RequestHeader(value = "Range", required = false) String rangeHeader
+    ) {
+        return videoService.streamVideo(id, rangeHeader);
     }
 
     @GetMapping("/{id}/thumbnail")

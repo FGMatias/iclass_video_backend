@@ -12,6 +12,7 @@ import java.util.List;
 
 public interface UserService {
     List<UserResponseDTO> findAll();
+    List<UserResponseDTO> findByRoleId(Integer roleId);
     UserResponseDTO findById(Integer id);
     UserResponseDTO create(CreateUserDTO dto);
     UserResponseDTO createCompanyAdmin(CreateCompanyAdminDTO dto);
