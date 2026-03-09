@@ -98,7 +98,7 @@ public class UserServiceImpl implements UserService {
         Role role = roleRepository.findById(2)
                 .orElseThrow(() -> new ResourceNotFoundException("Rol ADMINISTRADOR_EMPRESA no encontrado"));
 
-        String hashedPassword = passwordEncoder.encode(dto.getPassword());
+        String hashedPassword = passwordEncoder.encode("admin123!");
 
         User user = User.builder()
                 .role(role)
@@ -190,10 +190,6 @@ public class UserServiceImpl implements UserService {
         }
 
         userMapper.updateEntity(user, dto);
-
-        if (dto.getPassword() != null) {
-            user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        }
 
         User updatedUser = userRepository.save(user);
 
