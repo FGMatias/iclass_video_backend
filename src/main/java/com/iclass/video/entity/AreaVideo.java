@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "area_video")
+@Table(name = "area_video", uniqueConstraints = @UniqueConstraint(columnNames = {"area_id", "video_id"}))
 @Getter
 @Setter
 @NoArgsConstructor

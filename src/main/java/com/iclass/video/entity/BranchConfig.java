@@ -26,7 +26,7 @@ public class BranchConfig {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false, length = 50)
-    private ConfigCategory configCategory;
+    private ConfigCategory category;
 
     @Column(name = "config_key", nullable = false, length = 100)
     private String configKey;
