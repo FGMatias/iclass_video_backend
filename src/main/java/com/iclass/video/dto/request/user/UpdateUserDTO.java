@@ -15,9 +15,6 @@ public class UpdateUserDTO {
     @Pattern(regexp = "^[a-zA-Z0-9._-]+$")
     private String username;
 
-    @Size(min = 8, max = 100)
-    private String password;
-
     @Size(max = 100)
     private String name;
 

@@ -20,10 +20,6 @@ public class CreateCompanyAdminDTO {
     )
     private String username;
 
-    @NotBlank(message = "La contraseña es obligatoria")
-    @Size(min = 8, max = 100)
-    private String password;
-
     @NotBlank(message = "El nombre es obligatorio")
     @Size(max = 100)
     private String name;
