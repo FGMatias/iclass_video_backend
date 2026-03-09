@@ -61,7 +61,7 @@ public class AreaVideoServiceImpl implements AreaVideoService {
             throw new BadRequestException("El video y el área deben pertenecer a la misma empresa");
         }
 
-        if (!areaVideoRepository.existsByVideo_IdAndArea_Id(dto.getVideoId(), dto.getAreaId())) {
+        if (areaVideoRepository.existsByVideo_IdAndArea_Id(dto.getVideoId(), dto.getAreaId())) {
             throw new DuplicateEntityException("El video ya está asignado a esta área");
         }
 

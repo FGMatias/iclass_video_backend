@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface VideoService {
     VideoUploadResponseDTO uploadVideo(MultipartFile file, Integer companyId, String name, MultipartFile thumbnail);
-    ResponseEntity<Resource> streamVideo(Integer videoId);
+    ResponseEntity<Resource> streamVideo(Integer videoId, String rangeHeader);
     ResponseEntity<Resource> getThumbnail(Integer videoId);
     List<VideoResponseDTO> findAll();
     List<VideoResponseDTO> findByCompany(Integer companyId);

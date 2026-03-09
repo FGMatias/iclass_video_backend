@@ -17,9 +17,11 @@ import com.iclass.video.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,7 @@ import ws.schild.jave.info.VideoSize;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -116,7 +119,7 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     @Transactional(readOnly = true)
-    public ResponseEntity<Resource> streamVideo(Integer videoId) {
+    public ResponseEntity<Resource> streamVideo(Integer videoId, String rangeHeader) {
         Video video = videoRepository.findById(videoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Video", videoId));
 
@@ -129,22 +132,22 @@ public class VideoServiceImpl implements VideoService {
 
         try {
             Path path = Paths.get(fullPath);
-            Resource resource = new UrlResource(path.toUri());
 
-            if (!resource.exists() || !resource.isReadable()) {
+            if (!Files.exists(path) || !Files.isReadable(path)) {
                 throw new ResourceNotFoundException("Archivo de video no encontrado en disco");
             }
 
+            long fileSize = Files.size(path);
             String contentType = Files.probeContentType(path);
             if (contentType == null) {
-                contentType = "application/octet-stream";
+                contentType = "video/mp4";
             }
 
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + video.getFileName() + "\"")
-                    .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(video.getFileSize()))
-                    .body(resource);
+            if (rangeHeader == null || !rangeHeader.startsWith("bytes=")) {
+                return buildFullResponse(path, fileSize, contentType, video.getFileName());
+            }
+
+            return buildPartialResponse(path, fileSize, contentType, video.getFileName(), rangeHeader);
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
@@ -258,6 +261,7 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
+    @Transactional
     public void deactivate(Integer id) {
         Video video = videoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Video", id));
@@ -418,6 +422,147 @@ public class VideoServiceImpl implements VideoService {
             if (!directory.delete()) {
                 log.warn("No se pudo eliminar directorio: {}", directory.getAbsolutePath());
             }
+        }
+    }
+
+    private ResponseEntity<Resource> buildFullResponse(
+            Path path,
+            long fileSize,
+            String contentType,
+            String fileName
+    ) throws IOException {
+        Resource resource = new UrlResource(path.toUri());
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
+                .contentLength(fileSize)
+                .body(resource);
+    }
+
+    private ResponseEntity<Resource> buildPartialResponse(
+            Path path,
+            long fileSize,
+            String contentType,
+            String fileName,
+            String rangeHeader
+    ) throws IOException {
+        long[] range = parseRangeHeader(rangeHeader, fileSize);
+        long rangeStart = range[0];
+        long rangeEnd = range[1];
+        long contentLength = rangeEnd - rangeStart + 1;
+
+        log.debug("Range request: bytes={}-{}/{} ({}KB)", rangeStart, rangeEnd, fileSize, contentLength / 1024);
+
+        InputStream inputStream = Files.newInputStream(path);
+        long skipped = inputStream.skip(rangeStart);
+
+        if (skipped != rangeStart) {
+            inputStream.close();
+            throw new BadRequestException("No se pudo posicionar en el byte solicitado");
+        }
+
+        InputStream boundedStream = new BoundedInputStream(inputStream, contentLength);
+        InputStreamResource resource = new InputStreamResource(boundedStream);
+
+        return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                .header(HttpHeaders.CONTENT_RANGE, String.format("bytes %d-%d/%d", rangeStart, rangeEnd, fileSize))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
+                .contentLength(contentLength)
+                .body(resource);
+    }
+
+    private long[] parseRangeHeader(String rangeHeader, long fileSize) {
+        String rangeValue = rangeHeader.replace("bytes=", "").trim();
+
+        long rangeStart;
+        long rangeEnd;
+
+        try {
+            if (rangeValue.startsWith("-")) {
+                long suffixLength = Long.parseLong(rangeValue.substring(1));
+                rangeStart = Math.max(0, fileSize - suffixLength);
+                rangeEnd = fileSize - 1;
+
+            } else if (rangeValue.endsWith("-")) {
+                rangeStart = Long.parseLong(rangeValue.replace("-", ""));
+                rangeEnd = fileSize - 1;
+
+            } else if (rangeValue.contains("-")) {
+                String[] parts = rangeValue.split("-");
+                rangeStart = Long.parseLong(parts[0]);
+                rangeEnd = Long.parseLong(parts[1]);
+
+            } else {
+                throw new BadRequestException("Formato de Range header inválido: " + rangeHeader);
+            }
+        } catch (NumberFormatException e) {
+            throw new BadRequestException("Formato de Range header inválido: " + rangeHeader);
+        }
+
+        if (rangeStart < 0 || rangeStart >= fileSize) {
+            throw new BadRequestException(
+                    String.format("Rango fuera de límites: start=%d, fileSize=%d", rangeStart, fileSize));
+        }
+
+        if (rangeEnd >= fileSize) {
+            rangeEnd = fileSize - 1;
+        }
+
+        if (rangeStart > rangeEnd) {
+            throw new BadRequestException(
+                    String.format("Rango inválido: start=%d > end=%d", rangeStart, rangeEnd));
+        }
+
+        return new long[]{rangeStart, rangeEnd};
+    }
+
+    private static class BoundedInputStream extends InputStream {
+        private final InputStream delegate;
+        private long remaining;
+
+        BoundedInputStream(InputStream delegate, long limit) {
+            this.delegate = delegate;
+            this.remaining = limit;
+        }
+
+        @Override
+        public int read() throws IOException {
+            if (remaining <= 0) {
+                return -1;
+            }
+
+            int result = delegate.read();
+
+            if (result != -1) {
+                remaining--;
+            }
+
+            return result;
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            if (remaining <= 0) {
+                return -1;
+            }
+
+            int toRead = (int) Math.min(len, remaining);
+            int result = delegate.read(b, off, toRead);
+
+            if (result != -1) {
+                remaining -= result;
+            }
+
+            return result;
+        }
+
+        @Override
+        public void close() throws IOException {
+            delegate.close();
         }
     }
 }
