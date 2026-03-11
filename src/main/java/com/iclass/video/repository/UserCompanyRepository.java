@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserCompanyRepository extends JpaRepository<UserCompany, Integer> {
@@ -17,4 +18,6 @@ public interface UserCompanyRepository extends JpaRepository<UserCompany, Intege
 
     List<UserCompany> findByUser_Id(Integer userId);
     List<UserCompany> findByCompany_Id(Integer companyId);
+    Optional<UserCompany> findFirstByUser_Id(Integer userId);
+    void deleteByUser_Id(Integer userId);
 }

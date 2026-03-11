@@ -75,6 +75,16 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping("/{id}/reassign-company")
+    @PreAuthorize("hasRole('SUPER_ADMINISTRADOR')")
+    public ResponseEntity<Void> reassignCompany(
+            @PathVariable Integer id,
+            @RequestBody @Valid ReassignCompanyDTO dto
+    ) {
+        userService.reassignCompany(id, dto.getCompanyId());
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
     public ResponseEntity<UserResponseDTO> delete(@PathVariable Integer id) {

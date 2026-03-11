@@ -1,10 +1,7 @@
 package com.iclass.video.service;
 
 import com.iclass.video.dto.request.auth.LoginDTO;
-import com.iclass.video.dto.request.user.CreateBranchAdminDTO;
-import com.iclass.video.dto.request.user.CreateCompanyAdminDTO;
-import com.iclass.video.dto.request.user.CreateUserDTO;
-import com.iclass.video.dto.request.user.UpdateUserDTO;
+import com.iclass.video.dto.request.user.*;
 import com.iclass.video.dto.response.user.UserAuthResponseDTO;
 import com.iclass.video.dto.response.user.UserResponseDTO;
 
@@ -22,6 +19,7 @@ public interface UserService {
     void activate(Integer id);
     void deactivate(Integer id);
     void resetPassword(Integer id, String newPassword);
+    void reassignCompany(Integer userId, Integer newCompanyId);
 
     UserAuthResponseDTO login(LoginDTO dto);
 }

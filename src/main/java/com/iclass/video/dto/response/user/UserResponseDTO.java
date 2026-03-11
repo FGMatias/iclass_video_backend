@@ -25,4 +25,14 @@ public class UserResponseDTO {
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private AssignmentDTO assignment;
+
+    @Data
+    @Builder
+    public static class AssignmentDTO {
+        private Integer companyId;
+        private String companyName;
+        private Integer branchId;
+        private String branchName;
+    }
 }

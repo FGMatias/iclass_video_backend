@@ -1,19 +1,16 @@
 package com.iclass.video.service.impl;
 
+import com.iclass.video.constants.RoleConstants;
 import com.iclass.video.dto.request.auth.LoginDTO;
-import com.iclass.video.dto.request.user.CreateBranchAdminDTO;
-import com.iclass.video.dto.request.user.CreateCompanyAdminDTO;
-import com.iclass.video.dto.request.user.CreateUserDTO;
-import com.iclass.video.dto.request.user.UpdateUserDTO;
+import com.iclass.video.dto.request.user.*;
 import com.iclass.video.dto.response.user.UserAuthResponseDTO;
 import com.iclass.video.dto.response.user.UserResponseDTO;
 import com.iclass.video.entity.*;
+import com.iclass.video.exception.BadRequestException;
 import com.iclass.video.repository.*;
-import com.iclass.video.entity.*;
 import com.iclass.video.exception.DuplicateEntityException;
 import com.iclass.video.exception.ResourceNotFoundException;
 import com.iclass.video.mapper.UserMapper;
-import com.iclass.video.repository.*;
 import com.iclass.video.security.JwtService;
 import com.iclass.video.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -200,6 +197,29 @@ public class UserServiceImpl implements UserService {
         User updatedUser = userRepository.save(user);
 
         return userMapper.toResponseDTO(updatedUser);
+    }
+
+    @Override
+    @Transactional
+    public void reassignCompany(Integer userId, Integer newCompanyId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", userId));
+
+        if (user.getRole().getId() != RoleConstants.ID_ADMINISTRADOR_EMPRESA) {
+            throw new BadRequestException("Solo se puede reasignar empresa a un Administrador de Empresa");
+        }
+
+        Company newCompany = companyRepository.findById(newCompanyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa", newCompanyId));
+
+        userCompanyRepository.deleteByUser_Id(userId);
+
+        UserCompany userCompany = UserCompany.builder()
+                .user(user)
+                .company(newCompany)
+                .createdAt(LocalDateTime.now())
+                .build();
+        userCompanyRepository.save(userCompany);
     }
 
     @Override
