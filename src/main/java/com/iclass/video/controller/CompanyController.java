@@ -2,6 +2,7 @@ package com.iclass.video.controller;
 
 import com.iclass.video.dto.request.company.CreateCompanyDTO;
 import com.iclass.video.dto.request.company.UpdateCompanyDTO;
+import com.iclass.video.dto.response.company.CompanyDetailDTO;
 import com.iclass.video.dto.response.company.CompanyResponseDTO;
 import com.iclass.video.service.CompanyService;
 import jakarta.validation.Valid;
@@ -30,6 +31,13 @@ public class CompanyController {
     @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR')")
     public ResponseEntity<CompanyResponseDTO> findById(@PathVariable Integer id) {
         CompanyResponseDTO response = companyService.findById(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/detail")
+    @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR')")
+    public ResponseEntity<CompanyDetailDTO> detail(@PathVariable Integer id) {
+        CompanyDetailDTO response = companyService.detail(id);
         return ResponseEntity.ok(response);
     }
 

@@ -2,7 +2,11 @@ package com.iclass.video.mapper;
 
 import com.iclass.video.dto.request.company.CreateCompanyDTO;
 import com.iclass.video.dto.request.company.UpdateCompanyDTO;
+import com.iclass.video.dto.response.branch.BranchResponseDTO;
+import com.iclass.video.dto.response.company.CompanyDetailDTO;
 import com.iclass.video.dto.response.company.CompanyResponseDTO;
+import com.iclass.video.dto.response.user.UserResponseDTO;
+import com.iclass.video.dto.response.user.UserSimpleDTO;
 import com.iclass.video.entity.Company;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -49,6 +53,29 @@ public class CompanyMapper {
                 .isActive(company.getIsActive())
                 .createdAt(company.getCreatedAt())
                 .updatedAt(company.getUpdatedAt())
+                .build();
+    }
+
+    public CompanyDetailDTO toDetailDTO(
+            Company company,
+            List<UserResponseDTO> administrators,
+            List<BranchResponseDTO> branches,
+            Integer totalVideos
+    ) {
+        return CompanyDetailDTO.builder()
+                .id(company.getId())
+                .name(company.getName())
+                .ruc(company.getRuc())
+                .direction(company.getDirection())
+                .phone(company.getPhone())
+                .email(company.getEmail())
+                .logo(company.getLogo())
+                .isActive(company.getIsActive())
+                .createdAt(company.getCreatedAt())
+                .totalBranches(branches != null ? branches.size() : 0)
+                .totalVideos(totalVideos != null ? totalVideos : 0)
+                .administrators(administrators)
+                .branches(branches)
                 .build();
     }
 

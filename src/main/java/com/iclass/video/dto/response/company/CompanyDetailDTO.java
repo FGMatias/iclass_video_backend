@@ -1,5 +1,7 @@
 package com.iclass.video.dto.response.company;
 
+import com.iclass.video.dto.response.branch.BranchResponseDTO;
+import com.iclass.video.dto.response.user.UserResponseDTO;
 import com.iclass.video.dto.response.user.UserSimpleDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,6 +26,7 @@ public class CompanyDetailDTO {
     private Boolean isActive;
     private Integer totalBranches;
     private Integer totalVideos;
-    private List<UserSimpleDTO> administrators;
+    private List<UserResponseDTO> administrators;
+    private List<BranchResponseDTO> branches;
     private LocalDateTime createdAt;
 }
