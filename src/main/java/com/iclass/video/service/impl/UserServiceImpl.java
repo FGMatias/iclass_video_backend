@@ -14,6 +14,7 @@ import com.iclass.video.mapper.UserMapper;
 import com.iclass.video.security.JwtService;
 import com.iclass.video.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -40,17 +41,52 @@ public class UserServiceImpl implements UserService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
+    @Value("${app.default-password}")
+    private String defaultPassword;
+
+    private void enrichWithAssignment(UserResponseDTO dto) {
+        if (dto.getRoleId() == RoleConstants.ID_ADMINISTRADOR_EMPRESA) {
+            userCompanyRepository.findFirstByUser_Id(dto.getId())
+                    .ifPresent(uc -> {
+                        Company company = uc.getCompany();
+                        dto.setAssignment(UserResponseDTO.AssignmentDTO.builder()
+                                .companyId(company.getId())
+                                .companyName(company.getName())
+                                .build());
+                    });
+        }
+
+        if (dto.getRoleId() == RoleConstants.ID_ADMINISTRADOR_SUCURSAL) {
+            userBranchRepository.findFirstByUser_Id(dto.getId())
+                    .ifPresent(ub -> {
+                        Branch branch = ub.getBranch();
+                        Company company = branch.getCompany();
+                        dto.setAssignment(UserResponseDTO.AssignmentDTO.builder()
+                                .companyId(company.getId())
+                                .companyName(company.getName())
+                                .branchId(branch.getId())
+                                .branchName(branch.getName())
+                                .build());
+                    });
+        }
+    }
+
+    private List<UserResponseDTO> enrichList(List<UserResponseDTO> dtos) {
+        dtos.forEach(this::enrichWithAssignment);
+        return dtos;
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<UserResponseDTO> findAll() {
         List<User> users = userRepository.findAll();
-        return userMapper.toResponseDTOList(users);
+        return enrichList(userMapper.toResponseDTOList(users));
     }
 
     @Override
     public List<UserResponseDTO> findByRoleId(Integer roleId) {
         List<User> users = userRepository.findByRolId(roleId);
-        return userMapper.toResponseDTOList(users);
+        return enrichList(userMapper.toResponseDTOList(users));
     }
 
     @Override
@@ -59,7 +95,9 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", id));
 
-        return userMapper.toResponseDTO(user);
+        UserResponseDTO dto = userMapper.toResponseDTO(user);
+        enrichWithAssignment(dto);
+        return dto;
     }
 
     @Override
@@ -76,8 +114,7 @@ public class UserServiceImpl implements UserService {
         Role role = roleRepository.findById(dto.getRoleId())
                 .orElseThrow(() -> new ResourceNotFoundException("Rol", dto.getRoleId()));
 
-        String hashedPassword = passwordEncoder.encode(dto.getPassword());
-
+        String hashedPassword = passwordEncoder.encode(defaultPassword);
         User user = userMapper.toEntity(dto, role, hashedPassword);
         User savedUser = userRepository.save(user);
 
@@ -101,7 +138,7 @@ public class UserServiceImpl implements UserService {
         Role role = roleRepository.findById(2)
                 .orElseThrow(() -> new ResourceNotFoundException("Rol ADMINISTRADOR_EMPRESA no encontrado"));
 
-        String hashedPassword = passwordEncoder.encode("admin123!");
+        String hashedPassword = passwordEncoder.encode(defaultPassword);
 
         User user = User.builder()
                 .role(role)
@@ -126,7 +163,12 @@ public class UserServiceImpl implements UserService {
 
         userCompanyRepository.save(userCompany);
 
-        return userMapper.toResponseDTO(savedUser);
+        UserResponseDTO responseDTO = userMapper.toResponseDTO(savedUser);
+        responseDTO.setAssignment(UserResponseDTO.AssignmentDTO.builder()
+                .companyId(company.getId())
+                .companyName(company.getName())
+                .build());
+        return responseDTO;
     }
 
     @Override
@@ -146,7 +188,7 @@ public class UserServiceImpl implements UserService {
         Role role = roleRepository.findById(3)
                 .orElseThrow(() -> new ResourceNotFoundException("Rol ADMINISTRADOR_SUCURSAL no encontrado"));
 
-        String hashedPassword = passwordEncoder.encode(dto.getPassword());
+        String hashedPassword = passwordEncoder.encode(defaultPassword);
 
         User user = User.builder()
                 .role(role)
@@ -171,7 +213,15 @@ public class UserServiceImpl implements UserService {
 
         userBranchRepository.save(userBranch);
 
-        return userMapper.toResponseDTO(savedUser);
+        Company company = branch.getCompany();
+        UserResponseDTO responseDTO = userMapper.toResponseDTO(savedUser);
+        responseDTO.setAssignment(UserResponseDTO.AssignmentDTO.builder()
+                .companyId(company.getId())
+                .companyName(company.getName())
+                .branchId(branch.getId())
+                .branchName(branch.getName())
+                .build());
+        return responseDTO;
     }
 
     @Override
@@ -193,10 +243,11 @@ public class UserServiceImpl implements UserService {
         }
 
         userMapper.updateEntity(user, dto);
-
         User updatedUser = userRepository.save(user);
 
-        return userMapper.toResponseDTO(updatedUser);
+        UserResponseDTO responseDTO = userMapper.toResponseDTO(updatedUser);
+        enrichWithAssignment(responseDTO);
+        return responseDTO;
     }
 
     @Override
@@ -254,7 +305,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void resetPassword(Integer id, String newPassword) {
+    public void resetPassword(Integer id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", id));
+
+        user.setPassword(passwordEncoder.encode(defaultPassword));
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(Integer id, String newPassword) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", id));
 

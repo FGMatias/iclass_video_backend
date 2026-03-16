@@ -1,5 +1,6 @@
 package com.iclass.video.controller;
 
+import com.iclass.video.dto.request.auth.ChangePasswordDTO;
 import com.iclass.video.dto.request.auth.ResetPasswordDTO;
 import com.iclass.video.dto.request.user.CreateBranchAdminDTO;
 import com.iclass.video.dto.request.user.CreateCompanyAdminDTO;
@@ -108,11 +109,18 @@ public class UserController {
 
     @PutMapping("/{id}/reset-password")
     @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
-    public ResponseEntity<Void> resetPassword(
+    public ResponseEntity<Void> resetPassword(@PathVariable Integer id) {
+        userService.resetPassword(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/change-password")
+    @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
+    public ResponseEntity<Void> changePassword(
             @PathVariable Integer id,
-            @RequestBody @Valid ResetPasswordDTO dto
+            @RequestBody @Valid ChangePasswordDTO dto
     ) {
-        userService.resetPassword(id, dto.getNewPassword());
+        userService.changePassword(id, dto.getNewPassword());
         return ResponseEntity.ok().build();
     }
 }

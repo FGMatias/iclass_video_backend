@@ -18,7 +18,8 @@ public interface UserService {
     void delete(Integer id);
     void activate(Integer id);
     void deactivate(Integer id);
-    void resetPassword(Integer id, String newPassword);
+    void resetPassword(Integer id);
+    void changePassword(Integer id, String newPassword);
     void reassignCompany(Integer userId, Integer newCompanyId);
 
     UserAuthResponseDTO login(LoginDTO dto);

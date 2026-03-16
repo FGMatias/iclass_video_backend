@@ -17,6 +17,7 @@ public interface UserCompanyRepository extends JpaRepository<UserCompany, Intege
     List<UserCompany> findByCompanyIdWithUsers(Integer companyId);
 
     List<UserCompany> findByUser_Id(Integer userId);
+    List<UserCompany> findByCompanyId(Integer companyId);
     List<UserCompany> findByCompany_Id(Integer companyId);
     Optional<UserCompany> findFirstByUser_Id(Integer userId);
     void deleteByUser_Id(Integer userId);
