@@ -10,4 +10,5 @@ import java.util.List;
 public interface VideoRepository extends JpaRepository<Video, Integer> {
     List<Video> findByCompany_Id(Integer companyId);
     Boolean existsByName(String name);
+    Integer countByCompanyId(Integer companyId);
 } 
