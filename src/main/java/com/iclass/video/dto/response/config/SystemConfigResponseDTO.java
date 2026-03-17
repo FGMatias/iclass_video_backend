@@ -21,6 +21,6 @@ public class SystemConfigResponseDTO {
     private String description;
     private String validationRule;
     private Integer displayOrder;
-    private String updatedByUsername;
+    private Integer updatedByUser;
     private LocalDateTime updatedAt;
 }

@@ -16,12 +16,6 @@ public class SystemConfigMapper {
         if (dto.getConfigValue() != null) {
             config.setConfigValue(dto.getConfigValue());
         }
-        if (dto.getDescription() != null) {
-            config.setDescription(dto.getDescription());
-        }
-        if (dto.getDisplayOrder() != null) {
-            config.setDisplayOrder(dto.getDisplayOrder());
-        }
         if (updatedBy != null) {
             config.setUpdatedBy(updatedBy);
         }
@@ -37,7 +31,7 @@ public class SystemConfigMapper {
                 .description(config.getDescription())
                 .validationRule(config.getValidationRule())
                 .displayOrder(config.getDisplayOrder())
-                .updatedByUsername(config.getUpdatedBy() != null ? config.getUpdatedBy().getUsername() : null)
+                .updatedByUser(config.getUpdatedBy() != null ? config.getUpdatedBy().getId() : null)
                 .updatedAt(config.getUpdatedAt())
                 .build();
     }
