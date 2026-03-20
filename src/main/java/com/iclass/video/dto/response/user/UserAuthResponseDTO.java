@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,4 +20,5 @@ public class UserAuthResponseDTO {
     private String email;
     private Integer roleId;
     private String roleName;
+    private LocalDateTime expiresAt;
 }

@@ -9,6 +9,7 @@ import com.iclass.video.entity.Role;
 import com.iclass.video.entity.User;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,7 +64,7 @@ public class UserMapper {
                 .build();
     }
 
-    public UserAuthResponseDTO userAuthResponseDTO(User user, String token) {
+    public UserAuthResponseDTO userAuthResponseDTO(User user, String token, LocalDateTime expiresAt) {
         return UserAuthResponseDTO.builder()
                 .token(token)
                 .type("Bearer")
@@ -73,6 +74,7 @@ public class UserMapper {
                 .email(user.getEmail())
                 .roleId(user.getRole().getId())
                 .roleName(user.getRole().getName())
+                .expiresAt(expiresAt)
                 .build();
     }
 
