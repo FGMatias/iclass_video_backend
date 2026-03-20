@@ -14,7 +14,7 @@ public interface UserBranchRepository extends JpaRepository<UserBranch, Integer>
             "JOIN FETCH ub.user u " +
             "WHERE ub.branch.id = :branchId")
     List<UserBranch> findByBranchIdWithUsers(Integer branchId);
-
+    List<UserBranch> findByBranch_Company_Id(Integer branchCompanyId);
     List<UserBranch> findByUser_Id(Integer userId);
     List<UserBranch> findByBranchId(Integer branchId);
     List<UserBranch> findByBranch_Id(Integer branchId);

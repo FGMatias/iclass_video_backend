@@ -21,7 +21,7 @@ public class CompanyController {
     private final CompanyService companyService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA')")
     public ResponseEntity<List<CompanyResponseDTO>> findAll() {
         List<CompanyResponseDTO> response = companyService.findAll();
         return ResponseEntity.ok(response);

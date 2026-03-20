@@ -12,6 +12,7 @@ import com.iclass.video.exception.DuplicateEntityException;
 import com.iclass.video.exception.ResourceNotFoundException;
 import com.iclass.video.mapper.UserMapper;
 import com.iclass.video.security.JwtService;
+import com.iclass.video.security.SecurityUtils;
 import com.iclass.video.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +42,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final SecurityUtils securityUtils;
 
     @Value("${app.default-password}")
     private String defaultPassword;
@@ -80,6 +82,20 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public List<UserResponseDTO> findAll() {
+        User currentUser = securityUtils.getCurrentUser();
+
+        if (currentUser.getRole().getId() == RoleConstants.ID_ADMINISTRADOR_EMPRESA) {
+            UserCompany userCompany = userCompanyRepository.findFirstByUser_Id(currentUser.getId())
+                    .orElseThrow(() -> new BadRequestException("El administrador no tiene una empresa asignada"));
+
+            List<UserBranch> companyUserBranches = userBranchRepository.findByBranch_Company_Id(userCompany.getCompany().getId());
+
+            List<User> companyUsers = companyUserBranches.stream()
+                    .map(UserBranch::getUser)
+                    .toList();
+
+            return enrichList(userMapper.toResponseDTOList(companyUsers));
+        }
         List<User> users = userRepository.findAll();
         return enrichList(userMapper.toResponseDTOList(users));
     }
@@ -87,6 +103,21 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public List<UserResponseDTO> findByRoleId(Integer roleId) {
+        User currentUser = securityUtils.getCurrentUser();
+
+        if (currentUser.getRole().getId() == RoleConstants.ID_ADMINISTRADOR_EMPRESA) {
+            UserCompany userCompany = userCompanyRepository.findFirstByUser_Id(currentUser.getId())
+                    .orElseThrow(() -> new BadRequestException("El administrador no tiene una empresa asignada"));
+
+            List<UserBranch> companyUserBranches =  userBranchRepository.findByBranch_Company_Id(userCompany.getCompany().getId());
+
+            List<User> companyUsers = companyUserBranches.stream()
+                    .map(UserBranch::getUser)
+                    .filter(u -> u.getRole().getId().equals(roleId))
+                    .toList();
+
+            return enrichList(userMapper.toResponseDTOList(companyUsers));
+        }
         List<User> users = userRepository.findByRolId(roleId);
         return enrichList(userMapper.toResponseDTOList(users));
     }
