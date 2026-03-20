@@ -21,8 +21,15 @@ public class BranchController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
-    public ResponseEntity<List<BranchResponseDTO>> findAll() {
-        List<BranchResponseDTO> response = branchService.findAll();
+    public ResponseEntity<List<BranchResponseDTO>> findAll(@RequestParam(required = false) Integer companyId) {
+        List<BranchResponseDTO> response;
+
+        if (companyId != null) {
+            response = branchService.findByCompanyId(companyId);
+        } else {
+            response = branchService.findAll();
+        }
+
         return ResponseEntity.ok(response);
     }
 

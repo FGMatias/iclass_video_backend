@@ -29,4 +29,5 @@ public class CompanyDetailDTO {
     private List<UserResponseDTO> administrators;
     private List<BranchResponseDTO> branches;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

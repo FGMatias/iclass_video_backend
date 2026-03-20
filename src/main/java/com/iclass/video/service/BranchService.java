@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface BranchService {
     List<BranchResponseDTO> findAll();
+    List<BranchResponseDTO> findByCompanyId(Integer companyId);
     BranchResponseDTO findById(Integer id);
     BranchResponseDTO create(CreateBranchDTO dto);
     BranchResponseDTO update(Integer id, UpdateBranchDTO dto);

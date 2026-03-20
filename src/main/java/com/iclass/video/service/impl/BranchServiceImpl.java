@@ -33,6 +33,13 @@ public class BranchServiceImpl implements BranchService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<BranchResponseDTO> findByCompanyId(Integer companyId) {
+        List<Branch> branches = branchRepository.findByCompanyId(companyId);
+        return branchMapper.toResponseDTOList(branches);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public BranchResponseDTO findById(Integer id) {
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sucursal", id));

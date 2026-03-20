@@ -17,10 +17,6 @@ public class CreateBranchAdminDTO {
     @Pattern(regexp = "^[a-zA-Z0-9._-]+$")
     private String username;
 
-    @NotBlank(message = "La contraseña es obligatoria")
-    @Size(min = 8, max = 100)
-    private String password;
-
     @NotBlank(message = "El nombre es obligatorio")
     @Size(max = 100)
     private String name;

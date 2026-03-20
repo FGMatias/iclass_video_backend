@@ -72,6 +72,7 @@ public class CompanyMapper {
                 .logo(company.getLogo())
                 .isActive(company.getIsActive())
                 .createdAt(company.getCreatedAt())
+                .updatedAt(company.getUpdatedAt())
                 .totalBranches(branches != null ? branches.size() : 0)
                 .totalVideos(totalVideos != null ? totalVideos : 0)
                 .administrators(administrators)
