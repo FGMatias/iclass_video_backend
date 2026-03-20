@@ -15,6 +15,7 @@ import com.iclass.video.security.JwtService;
 import com.iclass.video.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cglib.core.Local;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -84,6 +85,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserResponseDTO> findByRoleId(Integer roleId) {
         List<User> users = userRepository.findByRolId(roleId);
         return enrichList(userMapper.toResponseDTOList(users));
@@ -275,6 +277,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    public void reassignBranch(Integer userId, Integer newBranchId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", userId));
+
+        if (user.getRole().getId() != RoleConstants.ID_ADMINISTRADOR_SUCURSAL) {
+            throw  new BadRequestException("Solo se puede reasignar sucursal a un Administrador de Sucursal");
+        }
+
+        Branch newBranch = branchRepository.findById(newBranchId)
+                .orElseThrow(() -> new ResourceNotFoundException("Sucursal", newBranchId));
+
+        userBranchRepository.deleteByUser_Id(userId);
+
+        UserBranch userBranch = UserBranch.builder()
+                .user(user)
+                .branch(newBranch)
+                .createdAt(LocalDateTime.now())
+                .build();
+        userBranchRepository.save(userBranch);
+    }
+
+    @Override
+    @Transactional
     public void delete(Integer id) {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("Usuario", id);
@@ -343,6 +368,8 @@ public class UserServiceImpl implements UserService {
                 )
         );
 
-        return userMapper.userAuthResponseDTO(user, token);
+        LocalDateTime expiresAt = jwtService.getExpirationDate();
+
+        return userMapper.userAuthResponseDTO(user, token, expiresAt);
     }
 }

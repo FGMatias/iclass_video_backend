@@ -21,6 +21,7 @@ public interface UserService {
     void resetPassword(Integer id);
     void changePassword(Integer id, String newPassword);
     void reassignCompany(Integer userId, Integer newCompanyId);
+    void reassignBranch(Integer userId, Integer newBranchId);
 
     UserAuthResponseDTO login(LoginDTO dto);
 }

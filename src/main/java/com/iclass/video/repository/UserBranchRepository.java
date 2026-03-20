@@ -16,6 +16,8 @@ public interface UserBranchRepository extends JpaRepository<UserBranch, Integer>
     List<UserBranch> findByBranchIdWithUsers(Integer branchId);
 
     List<UserBranch> findByUser_Id(Integer userId);
+    List<UserBranch> findByBranchId(Integer branchId);
     List<UserBranch> findByBranch_Id(Integer branchId);
     Optional<UserBranch> findFirstByUser_Id(Integer userId);
+    void deleteByUser_Id(Integer userId);
 }

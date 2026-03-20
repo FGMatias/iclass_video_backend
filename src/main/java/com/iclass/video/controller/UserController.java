@@ -86,6 +86,16 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/{id}/reassign-branch")
+    @PreAuthorize("hasRole('ADMINISTRADOR_EMPRESA')")
+    public ResponseEntity<Void> reassignBranch(
+            @PathVariable Integer id,
+            @RequestBody @Valid ReassignBranchDTO dto
+    ) {
+        userService.reassignBranch(id, dto.getBranchId());
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
     public ResponseEntity<UserResponseDTO> delete(@PathVariable Integer id) {
