@@ -2,6 +2,7 @@ package com.iclass.video.controller;
 
 import com.iclass.video.dto.request.branch.CreateBranchDTO;
 import com.iclass.video.dto.request.branch.UpdateBranchDTO;
+import com.iclass.video.dto.response.branch.BranchDetailDTO;
 import com.iclass.video.dto.response.branch.BranchResponseDTO;
 import com.iclass.video.service.BranchService;
 import jakarta.validation.Valid;
@@ -37,6 +38,13 @@ public class BranchController {
     @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
     public ResponseEntity<BranchResponseDTO> findById(@PathVariable Integer id) {
         BranchResponseDTO response = branchService.findById(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/detail")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
+    public ResponseEntity<BranchDetailDTO> detail(@PathVariable Integer id) {
+        BranchDetailDTO response = branchService.detail(id);
         return ResponseEntity.ok(response);
     }
 

@@ -1,5 +1,8 @@
 package com.iclass.video.dto.response.area;
 
+import com.iclass.video.dto.response.device.DeviceInfo;
+import com.iclass.video.dto.response.device.DeviceResponseDTO;
+import com.iclass.video.dto.response.video.VideoResponseDTO;
 import com.iclass.video.dto.response.video.VideoSimpleDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,20 +18,18 @@ import java.util.List;
 @Builder
 public class AreaDetailDTO {
     private Integer id;
+    private Integer branchId;
+    private String branchName;
+    private Integer companyId;
+    private String companyName;
     private String name;
     private String description;
     private Boolean isActive;
-    private BranchInfo branch;
-    private List<VideoSimpleDTO> videos;
+    private Integer totalVideos;
+    private Integer totalDevices;
+    private Integer totalDuration;
+    private List<VideoSimpleDTO> playlist;
+    private List<DeviceInfo> devices;
     private LocalDateTime createdAt;
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class BranchInfo {
-        private Integer id;
-        private String name;
-        private String companyName;
-    }
+    private LocalDateTime updatedAt;
 }

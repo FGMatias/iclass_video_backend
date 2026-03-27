@@ -2,7 +2,10 @@ package com.iclass.video.mapper;
 
 import com.iclass.video.dto.request.branch.CreateBranchDTO;
 import com.iclass.video.dto.request.branch.UpdateBranchDTO;
+import com.iclass.video.dto.response.area.AreaResponseDTO;
+import com.iclass.video.dto.response.branch.BranchDetailDTO;
 import com.iclass.video.dto.response.branch.BranchResponseDTO;
+import com.iclass.video.dto.response.user.UserResponseDTO;
 import com.iclass.video.entity.Branch;
 import com.iclass.video.entity.Company;
 import org.springframework.stereotype.Component;
@@ -41,6 +44,26 @@ public class BranchMapper {
                 .isActive(branch.getIsActive())
                 .createdAt(branch.getCreatedAt())
                 .updatedAt(branch.getUpdatedAt())
+                .build();
+    }
+
+    public BranchDetailDTO toDetailDTO(
+            Branch branch,
+            List<UserResponseDTO> administrators,
+            List<AreaResponseDTO> areas
+    ) {
+        return BranchDetailDTO.builder()
+                .id(branch.getId())
+                .companyId(branch.getCompany().getId())
+                .companyName(branch.getCompany().getName())
+                .name(branch.getName())
+                .direction(branch.getDirection())
+                .phone(branch.getPhone())
+                .isActive(branch.getIsActive())
+                .createdAt(branch.getCreatedAt())
+                .updatedAt(branch.getUpdatedAt())
+                .administrators(administrators)
+                .areas(areas)
                 .build();
     }
 

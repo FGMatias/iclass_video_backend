@@ -1,15 +1,25 @@
 package com.iclass.video.service.impl;
 
+import com.iclass.video.constants.RoleConstants;
 import com.iclass.video.dto.request.branch.CreateBranchDTO;
 import com.iclass.video.dto.request.branch.UpdateBranchDTO;
+import com.iclass.video.dto.response.area.AreaResponseDTO;
+import com.iclass.video.dto.response.branch.BranchDetailDTO;
 import com.iclass.video.dto.response.branch.BranchResponseDTO;
+import com.iclass.video.dto.response.user.UserResponseDTO;
+import com.iclass.video.entity.Area;
 import com.iclass.video.entity.Branch;
 import com.iclass.video.entity.Company;
+import com.iclass.video.entity.UserBranch;
 import com.iclass.video.exception.DuplicateEntityException;
 import com.iclass.video.exception.ResourceNotFoundException;
+import com.iclass.video.mapper.AreaMapper;
 import com.iclass.video.mapper.BranchMapper;
+import com.iclass.video.mapper.UserMapper;
+import com.iclass.video.repository.AreaRepository;
 import com.iclass.video.repository.BranchRepository;
 import com.iclass.video.repository.CompanyRepository;
+import com.iclass.video.repository.UserBranchRepository;
 import com.iclass.video.service.BranchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,8 +31,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BranchServiceImpl implements BranchService {
     private final BranchRepository branchRepository;
-    private final BranchMapper branchMapper;
     private final CompanyRepository companyRepository;
+    private final UserBranchRepository userBranchRepository;
+    private final AreaRepository areaRepository;
+    private final BranchMapper branchMapper;
+    private final UserMapper userMapper;
+    private final AreaMapper areaMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -80,6 +94,25 @@ public class BranchServiceImpl implements BranchService {
         Branch updatedBranch = branchRepository.save(branch);
 
         return branchMapper.toResponseDTO(updatedBranch);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BranchDetailDTO detail(Integer id) {
+        Branch branch = branchRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sucursal", id));
+
+        List<UserResponseDTO> administrators = userBranchRepository.findByBranchId(id)
+                .stream()
+                .map(UserBranch::getUser)
+                .filter(user -> user.getRole().getId() == RoleConstants.ID_ADMINISTRADOR_SUCURSAL)
+                .map(userMapper::toResponseDTO)
+                .toList();
+
+        List<Area> areas = areaRepository.findByBranchId(id);
+        List<AreaResponseDTO> areaDTOs = areaMapper.toResponseDTOList(areas);
+
+        return branchMapper.toDetailDTO(branch, administrators, areaDTOs);
     }
 
     @Override

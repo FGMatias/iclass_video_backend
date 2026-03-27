@@ -2,14 +2,19 @@ package com.iclass.video.service.impl;
 
 import com.iclass.video.dto.request.area.CreateAreaDTO;
 import com.iclass.video.dto.request.area.UpdateAreaDTO;
+import com.iclass.video.dto.response.area.AreaDetailDTO;
 import com.iclass.video.dto.response.area.AreaResponseDTO;
 import com.iclass.video.entity.Area;
+import com.iclass.video.entity.AreaVideo;
 import com.iclass.video.entity.Branch;
+import com.iclass.video.entity.DeviceArea;
 import com.iclass.video.exception.DuplicateEntityException;
 import com.iclass.video.exception.ResourceNotFoundException;
 import com.iclass.video.mapper.AreaMapper;
 import com.iclass.video.repository.AreaRepository;
+import com.iclass.video.repository.AreaVideoRepository;
 import com.iclass.video.repository.BranchRepository;
+import com.iclass.video.repository.DeviceAreaRepository;
 import com.iclass.video.service.AreaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,12 +27,25 @@ import java.util.List;
 public class AreaServiceImpl implements AreaService {
     private final AreaRepository areaRepository;
     private final BranchRepository branchRepository;
+    private final AreaVideoRepository areaVideoRepository;
+    private final DeviceAreaRepository deviceAreaRepository;
     private final AreaMapper areaMapper;
 
     @Override
     @Transactional(readOnly = true)
     public List<AreaResponseDTO> findAll() {
         List<Area> areas = areaRepository.findAll();
+        return areaMapper.toResponseDTOList(areas);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AreaResponseDTO> findByBranchId(Integer branchId) {
+        if (!branchRepository.existsById(branchId)) {
+            throw new ResourceNotFoundException("Sucursal", branchId);
+        }
+
+        List<Area> areas = areaRepository.findByBranchId(branchId);
         return areaMapper.toResponseDTOList(areas);
     }
 
@@ -73,6 +91,18 @@ public class AreaServiceImpl implements AreaService {
         Area updatedArea = areaRepository.save(area);
 
         return areaMapper.toResponseDTO(updatedArea);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AreaDetailDTO detail(Integer id) {
+        Area area = areaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Area", id));
+
+        List<AreaVideo> areaVideos = areaVideoRepository.findByAreaWithVideos(id);
+        List<DeviceArea> currentDevices = deviceAreaRepository.findCurrentByAreaId(id);
+
+        return areaMapper.toDetailDTO(area, areaVideos, currentDevices);
     }
 
     @Override

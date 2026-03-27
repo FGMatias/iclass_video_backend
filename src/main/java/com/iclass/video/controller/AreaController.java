@@ -2,6 +2,7 @@ package com.iclass.video.controller;
 
 import com.iclass.video.dto.request.area.CreateAreaDTO;
 import com.iclass.video.dto.request.area.UpdateAreaDTO;
+import com.iclass.video.dto.response.area.AreaDetailDTO;
 import com.iclass.video.dto.response.area.AreaResponseDTO;
 import com.iclass.video.service.AreaService;
 import jakarta.validation.Valid;
@@ -21,8 +22,17 @@ public class AreaController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
-    public ResponseEntity<List<AreaResponseDTO>> findAll() {
-        List<AreaResponseDTO> response = areaService.findAll();
+    public ResponseEntity<List<AreaResponseDTO>> findAll(
+            @RequestParam(required = false) Integer branchId
+    ) {
+        List<AreaResponseDTO> response;
+
+        if (branchId != null) {
+            response = areaService.findByBranchId(branchId);
+        } else {
+            response = areaService.findAll();
+        }
+
         return ResponseEntity.ok(response);
     }
 
@@ -30,6 +40,13 @@ public class AreaController {
     @PreAuthorize("hasAnyRole('ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
     public ResponseEntity<AreaResponseDTO> findById(@PathVariable Integer id) {
         AreaResponseDTO response = areaService.findById(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/detail")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
+    public ResponseEntity<AreaDetailDTO> detail(@PathVariable Integer id) {
+        AreaDetailDTO response = areaService.detail(id);
         return ResponseEntity.ok(response);
     }
 

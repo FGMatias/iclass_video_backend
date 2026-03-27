@@ -4,11 +4,12 @@ import com.iclass.video.dto.request.area.CreateAreaDTO;
 import com.iclass.video.dto.request.area.UpdateAreaDTO;
 import com.iclass.video.dto.response.area.AreaDetailDTO;
 import com.iclass.video.dto.response.area.AreaResponseDTO;
+import com.iclass.video.dto.response.device.DeviceInfo;
 import com.iclass.video.dto.response.video.VideoSimpleDTO;
 import com.iclass.video.entity.Area;
 import com.iclass.video.entity.AreaVideo;
 import com.iclass.video.entity.Branch;
-import com.iclass.video.repository.AreaVideoRepository;
+import com.iclass.video.entity.DeviceArea;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +20,6 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class AreaMapper {
-    private final AreaVideoRepository areaVideoRepository;
 
     public Area toEntity(CreateAreaDTO dto, Branch branch) {
         return Area.builder()
@@ -51,31 +51,57 @@ public class AreaMapper {
                 .build();
     }
 
-    public AreaDetailDTO toDetailDTO(Area area) {
-        List<AreaVideo> areaVideos = areaVideoRepository.findByAreaWithVideos(area.getId());
+    public AreaDetailDTO toDetailDTO(
+            Area area,
+            List<AreaVideo> areaVideos,
+            List<DeviceArea> currentDevices
+    ) {
+        List<VideoSimpleDTO> playlist = areaVideos.stream()
+                .sorted(Comparator.comparing(AreaVideo::getOrden))
+                .map(av -> VideoSimpleDTO.builder()
+                        .id(av.getVideo().getId())
+                        .name(av.getVideo().getName())
+                        .urlVideo(av.getVideo().getUrlVideo())
+                        .thumbnail(av.getVideo().getThumbnail())
+                        .duration(av.getVideo().getDuration())
+                        .orden(av.getOrden())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<DeviceInfo> devices = currentDevices.stream()
+                .map(da -> DeviceInfo.builder()
+                        .id(da.getDevice().getId())
+                        .deviceName(da.getDevice().getDeviceName())
+                        .deviceUsername(da.getDevice().getDeviceUsername())
+                        .deviceType(da.getDevice().getDeviceType().getName())
+                        .isActive(da.getDevice().getIsActive())
+                        .lastLogin(da.getDevice().getLastLogin())
+                        .lastSync(da.getDevice().getLastSync())
+                        .build())
+                .collect(Collectors.toList());
+
+        Integer totalDuration = playlist.stream()
+                .mapToInt(v -> v.getDuration() != null ? v.getDuration() : 0)
+                .sum();
+
+        Branch branch = area.getBranch();
 
         return AreaDetailDTO.builder()
                 .id(area.getId())
+                .branchId(branch.getId())
+                .branchName(branch.getName())
+                .companyId(branch.getCompany().getId())
+                .companyName(branch.getCompany().getName())
                 .name(area.getName())
                 .description(area.getDescription())
                 .isActive(area.getIsActive())
-                .branch(AreaDetailDTO.BranchInfo.builder()
-                        .id(area.getBranch().getId())
-                        .name(area.getBranch().getName())
-                        .companyName(area.getBranch().getCompany().getName())
-                        .build())
-                .videos(areaVideos.stream()
-                        .sorted(Comparator.comparing(AreaVideo::getOrden))
-                        .map(av -> VideoSimpleDTO.builder()
-                                .id(av.getVideo().getId())
-                                .name(av.getVideo().getName())
-                                .urlVideo(av.getVideo().getUrlVideo())
-                                .thumbnail(av.getVideo().getThumbnail())
-                                .duration(av.getVideo().getDuration())
-                                .orden(av.getOrden())
-                                .build())
-                        .collect(Collectors.toList()))
+                .totalVideos(playlist.size())
+                .totalDevices(devices.size())
+                .totalDuration(totalDuration)
+                .playlist(playlist)
+                .devices(devices)
                 .createdAt(area.getCreatedAt())
+                .updatedAt(area.getUpdatedAt())
                 .build();
     }
 
