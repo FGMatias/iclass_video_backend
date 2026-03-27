@@ -83,20 +83,19 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public List<UserResponseDTO> findAll() {
         User currentUser = securityUtils.getCurrentUser();
+        List<User> users;
 
         if (currentUser.getRole().getId() == RoleConstants.ID_ADMINISTRADOR_EMPRESA) {
             UserCompany userCompany = userCompanyRepository.findFirstByUser_Id(currentUser.getId())
                     .orElseThrow(() -> new BadRequestException("El administrador no tiene una empresa asignada"));
 
-            List<UserBranch> companyUserBranches = userBranchRepository.findByBranch_Company_Id(userCompany.getCompany().getId());
-
-            List<User> companyUsers = companyUserBranches.stream()
-                    .map(UserBranch::getUser)
-                    .toList();
-
-            return enrichList(userMapper.toResponseDTOList(companyUsers));
+            users = userRepository.findByRolIdAndCompanyId(
+                    RoleConstants.ID_ADMINISTRADOR_SUCURSAL,
+                    userCompany.getCompany().getId()
+            );
+        } else {
+            users = userRepository.findAll();
         }
-        List<User> users = userRepository.findAll();
         return enrichList(userMapper.toResponseDTOList(users));
     }
 
@@ -104,21 +103,17 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public List<UserResponseDTO> findByRoleId(Integer roleId) {
         User currentUser = securityUtils.getCurrentUser();
+        List<User> users;
 
         if (currentUser.getRole().getId() == RoleConstants.ID_ADMINISTRADOR_EMPRESA) {
             UserCompany userCompany = userCompanyRepository.findFirstByUser_Id(currentUser.getId())
                     .orElseThrow(() -> new BadRequestException("El administrador no tiene una empresa asignada"));
 
-            List<UserBranch> companyUserBranches =  userBranchRepository.findByBranch_Company_Id(userCompany.getCompany().getId());
-
-            List<User> companyUsers = companyUserBranches.stream()
-                    .map(UserBranch::getUser)
-                    .filter(u -> u.getRole().getId().equals(roleId))
-                    .toList();
-
-            return enrichList(userMapper.toResponseDTOList(companyUsers));
+            users = userRepository.findByRolIdAndCompanyId(roleId, userCompany.getCompany().getId());
+        } else {
+            users = userRepository.findByRolId(roleId);
         }
-        List<User> users = userRepository.findByRolId(roleId);
+
         return enrichList(userMapper.toResponseDTOList(users));
     }
 
