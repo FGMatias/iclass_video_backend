@@ -42,4 +42,11 @@ public interface DeviceAreaRepository extends JpaRepository<DeviceArea, Integer>
             "AND da.isCurrent = true " +
             "AND da.removedAt IS NULL")
     List<Integer> findCurrentDevicesByAreaId(@Param("areaId") Integer areaId);
+
+    @Query("SELECT da FROM DeviceArea da " +
+            "JOIN FETCH da.device d " +
+            "JOIN FETCH d.deviceType " +
+            "WHERE da.area.id = :areaId " +
+            "AND da.removedAt IS NULL")
+    List<DeviceArea> findCurrentByAreaId(@Param("areaId") Integer areaId);
 }

@@ -21,7 +21,9 @@ public class DeviceResponseDTO {
 
     private Integer currentAreaId;
     private String currentAreaName;
+    private Integer currentBranchId;
     private String currentBranchName;
+    private Integer currentCompanyId;
     private String currentCompanyName;
     private LocalDateTime assignedAt;
 

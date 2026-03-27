@@ -57,7 +57,9 @@ public class DeviceMapper {
             builder
                     .currentAreaId(area.getId())
                     .currentAreaName(area.getName())
+                    .currentBranchId(branch.getId())
                     .currentBranchName(branch.getName())
+                    .currentCompanyId(company.getId())
                     .currentCompanyName(company.getName());
         }
 
