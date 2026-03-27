@@ -3,6 +3,7 @@ package com.iclass.video.mapper;
 import com.iclass.video.dto.request.video.UpdateVideoDTO;
 import com.iclass.video.dto.response.video.VideoResponseDTO;
 import com.iclass.video.dto.response.video.VideoSimpleDTO;
+import com.iclass.video.dto.response.video.VideoUploadConstraintsDTO;
 import com.iclass.video.dto.response.video.VideoUploadResponseDTO;
 import com.iclass.video.entity.Company;
 import com.iclass.video.entity.Video;
@@ -70,6 +71,16 @@ public class VideoMapper {
                 .duration(video.getDuration())
                 .fileSize(video.getFileSize())
                 .checksum(video.getChecksum())
+                .build();
+    }
+
+    public VideoUploadConstraintsDTO toUploadConstraintsDTO(
+            Integer maxSize,
+            List<String> extensions
+    ) {
+        return VideoUploadConstraintsDTO.builder()
+                .maxSizeMb(maxSize)
+                .allowedExtensions(extensions)
                 .build();
     }
 

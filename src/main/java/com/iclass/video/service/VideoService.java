@@ -2,6 +2,7 @@ package com.iclass.video.service;
 
 import com.iclass.video.dto.request.video.UpdateVideoDTO;
 import com.iclass.video.dto.response.video.VideoResponseDTO;
+import com.iclass.video.dto.response.video.VideoUploadConstraintsDTO;
 import com.iclass.video.dto.response.video.VideoUploadResponseDTO;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ public interface VideoService {
     List<VideoResponseDTO> findByCompany(Integer companyId);
     VideoResponseDTO findById(Integer id);
     VideoResponseDTO update(Integer id, UpdateVideoDTO dto);
+    VideoUploadConstraintsDTO getUploadConstraints();
     void delete(Integer id, Integer userId);
     void activate(Integer id);
     void deactivate(Integer id);

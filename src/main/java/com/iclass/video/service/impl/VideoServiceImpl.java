@@ -2,6 +2,7 @@ package com.iclass.video.service.impl;
 
 import com.iclass.video.dto.request.video.UpdateVideoDTO;
 import com.iclass.video.dto.response.video.VideoResponseDTO;
+import com.iclass.video.dto.response.video.VideoUploadConstraintsDTO;
 import com.iclass.video.dto.response.video.VideoUploadResponseDTO;
 import com.iclass.video.entity.Company;
 import com.iclass.video.entity.Video;
@@ -229,6 +230,18 @@ public class VideoServiceImpl implements VideoService {
         log.info("Video actualizado: id={}, name={}", id, video.getName());
 
         return videoMapper.toResponseDTO(video);
+    }
+
+    @Override
+    public VideoUploadConstraintsDTO getUploadConstraints() {
+        Integer maxSizeMb = systemConfigService.getConfigValueAsInt("video.max.size.mb");
+        String extensions = systemConfigService.getConfigValue("video.allowed.extensions");
+
+        List<String> allowedExtensions = Arrays.stream(extensions.split(","))
+                .map(String::trim)
+                .toList();
+
+        return videoMapper.toUploadConstraintsDTO(maxSizeMb, allowedExtensions);
     }
 
     @Override

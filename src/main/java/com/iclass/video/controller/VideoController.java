@@ -2,6 +2,7 @@ package com.iclass.video.controller;
 
 import com.iclass.video.dto.request.video.UpdateVideoDTO;
 import com.iclass.video.dto.response.video.VideoResponseDTO;
+import com.iclass.video.dto.response.video.VideoUploadConstraintsDTO;
 import com.iclass.video.dto.response.video.VideoUploadResponseDTO;
 import com.iclass.video.security.SecurityUtils;
 import com.iclass.video.service.VideoService;
@@ -79,6 +80,13 @@ public class VideoController {
             @RequestBody @Valid UpdateVideoDTO dto
     ) {
         VideoResponseDTO response = videoService.update(id, dto);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/upload-constraints")
+    @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
+    public ResponseEntity<VideoUploadConstraintsDTO> getUploadConstraints() {
+        VideoUploadConstraintsDTO response = videoService.getUploadConstraints();
         return ResponseEntity.ok(response);
     }
 
