@@ -45,6 +45,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/user/auth/**").permitAll()
                         .requestMatchers("/api/device/auth/**").permitAll()
+                        .requestMatchers("/api/video/*/thumbnail").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .anyRequest().authenticated()
                 )
