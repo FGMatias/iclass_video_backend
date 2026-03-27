@@ -1,6 +1,7 @@
 package com.iclass.video.service.impl;
 
 import com.iclass.video.dto.request.areavideo.CreateAreaVideoDTO;
+import com.iclass.video.dto.request.areavideo.SyncPlaylistDTO;
 import com.iclass.video.dto.request.areavideo.UpdateAreaVideoDTO;
 import com.iclass.video.dto.response.areavideo.AreaVideoResponseDTO;
 import com.iclass.video.entity.Area;
@@ -92,6 +93,44 @@ public class AreaVideoServiceImpl implements AreaVideoService {
         log.info("PlaylistChangedEvent publicado para área {}", areaId);
 
         return areaVideoMapper.toResponseDTO(areaVideo);
+    }
+
+    @Override
+    @Transactional
+    public void syncPlaylist(Integer areaId, SyncPlaylistDTO dto, Integer userId) {
+        Area area = areaRepository.findById(areaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Area", areaId));
+
+        Integer areaCompanyId = area.getBranch().getCompany().getId();
+
+        List<Video> videos = videoRepository.findAllById(dto.getVideoIds());
+
+        if (videos.size() != dto.getVideoIds().size()) {
+            throw new BadRequestException("Algunos videos no existen");
+        }
+
+        for (Video video : videos) {
+            if (!video.getCompany().getId().equals(areaCompanyId)) {
+                throw new BadRequestException("El video '" + video.getName() + "' no pertenece a la empresa del área");
+            }
+        }
+
+        areaVideoRepository.deleteByArea_Id(areaId);
+
+        for (int i = 0; i < dto.getVideoIds().size(); i++) {
+            Integer videoId = dto.getVideoIds().get(i);
+            Video video = videos.stream()
+                    .filter(v -> v.getId().equals(videoId))
+                    .findFirst()
+                    .orElseThrow();
+
+            AreaVideo areaVideo = areaVideoMapper.toEntity(video, area, i + 1);
+            areaVideoRepository.save(areaVideo);
+        }
+
+        log.info("Playlist sincronizada para área id={}: {} videos", areaId, dto.getVideoIds().size());
+
+        eventPublisher.publishEvent(new PlayListChangedEvent(areaId, userId));
     }
 
     @Override

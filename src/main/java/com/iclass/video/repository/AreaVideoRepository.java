@@ -21,4 +21,6 @@ public interface AreaVideoRepository extends JpaRepository<AreaVideo, Integer> {
     @Query("SELECT DISTINCT av.area.id FROM AreaVideo av " +
             "WHERE av.video.id = :videoId")
     List<Integer> findAreaIdsByVideoId(@Param("videoId") Integer videoId);
+
+    void deleteByArea_Id(Integer areaId);
 }

@@ -57,11 +57,14 @@ public class SyncEventListener {
     public void handlePlaylistChanged(PlayListChangedEvent event) {
         log.info("Evento: Playlist cambiada en área {}", event.getAreaId());
 
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put("areaId", event.getAreaId());
+
         createPendingEvent(
                 SyncEventType.PLAYLIST_CHANGED,
                 TargetType.AREA,
                 event.getAreaId(),
-                null,
+                eventData,
                 event.getUserId()
         );
     }

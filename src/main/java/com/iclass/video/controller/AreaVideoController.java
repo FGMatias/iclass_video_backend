@@ -1,6 +1,7 @@
 package com.iclass.video.controller;
 
 import com.iclass.video.dto.request.areavideo.CreateAreaVideoDTO;
+import com.iclass.video.dto.request.areavideo.SyncPlaylistDTO;
 import com.iclass.video.dto.request.areavideo.UpdateAreaVideoDTO;
 import com.iclass.video.dto.response.areavideo.AreaVideoResponseDTO;
 import com.iclass.video.security.SecurityUtils;
@@ -27,6 +28,17 @@ public class AreaVideoController {
     public ResponseEntity<List<AreaVideoResponseDTO>> findByArea(@PathVariable Integer areaId) {
         List<AreaVideoResponseDTO> response = areaVideoService.findByArea(areaId);
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/area/{areaId}/sync")
+    @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
+    public ResponseEntity<Void> syncPlaylist(
+            @PathVariable Integer areaId,
+            @RequestBody @Valid SyncPlaylistDTO dto
+    ) {
+        Integer userId = securityUtils.getCurrentUserId();
+        areaVideoService.syncPlaylist(areaId, dto, userId);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping
