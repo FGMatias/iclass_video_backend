@@ -15,10 +15,25 @@ import java.util.stream.Collectors;
 @Component
 public class VideoMapper {
 
-    public Video toEntityForUpload(String name, Company company) {
+    public Video toEntityForUpload(
+            String name,
+            Company company,
+            String fileName,
+            String fileExtension,
+            Long fileSize,
+            String checksum,
+            Integer duration
+    ) {
         return Video.builder()
                 .company(company)
                 .name(name)
+                .fileName(fileName)
+                .fileExtension(fileExtension)
+                .fileSize(fileSize)
+                .checksum(checksum)
+                .duration(duration)
+                .filePath("pending")
+                .urlVideo("pending")
                 .isActive(true)
                 .build();
     }

@@ -47,7 +47,6 @@ public class VideoController {
     }
 
     @GetMapping("/{id}/thumbnail")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Resource> getThumbnail(@PathVariable Integer id) {
         return videoService.getThumbnail(id);
     }

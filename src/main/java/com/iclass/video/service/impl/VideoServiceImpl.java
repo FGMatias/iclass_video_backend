@@ -72,49 +72,64 @@ public class VideoServiceImpl implements VideoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Empresa", companyId));
 
         validateVideoFile(file);
-
-        Video video = videoMapper.toEntityForUpload(name, company);
-        Video savedVideo = videoRepository.save(video);
+        Path tempDir = null;
 
         try {
-            String basePath = systemConfigService.getConfigValue("video.storage.path");
-            String companyFolder = buildCompanyFolder(company);
-            String videoDir = basePath + "/" + companyFolder + "/" + savedVideo.getId();
-
-            Files.createDirectories(Paths.get(videoDir));
-            log.info("Directorio creado {}", videoDir);
-
+            tempDir = Files.createTempDirectory("iclass-upload-");
             String extension = getFileExtension(file.getOriginalFilename());
             String fileName = "video" + extension;
-            String fullPath = videoDir + "/" + fileName;
-            Files.copy(file.getInputStream(), Paths.get(fullPath), StandardCopyOption.REPLACE_EXISTING);
-            log.info("Video guardado {}", fullPath);
+            Path tempFile = tempDir.resolve(fileName);
+            Files.copy(file.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
 
-            String checksum = calculateChecksum(fullPath);
+            String checksum = calculateChecksum(tempFile.toString());
             Long fileSize = file.getSize();
-            Integer duration = extractDuration(fullPath);
+            Integer duration = extractDuration(tempFile.toString());
 
-            String thumbnailUrl = processThumbnail(thumbnail, fullPath, videoDir, savedVideo.getId());
+            Video video = videoMapper.toEntityForUpload(name, company, fileName, extension, fileSize, checksum, duration);
+            Video savedVideo = videoRepository.save(video);
+
+            String basePath = systemConfigService.getConfigValue("video.storage.path");
+            Path baseDir = Paths.get(basePath);
+
+            if (!Files.exists(baseDir)) {
+                Files.createDirectories(baseDir);
+                log.info("Directorio base creado: {}", baseDir);
+            }
+
+            if (!Files.isWritable(baseDir)) {
+                throw new BadRequestException("Sin permisos de escritura en: " + basePath);
+            }
+
+            String companyFolder = buildCompanyFolder(company);
+            String videoDir = basePath + "/" + companyFolder + "/" + savedVideo.getId();
+            Files.createDirectories(Paths.get(videoDir));
+
+            Path finalFile = Paths.get(videoDir + "/" + fileName);
+            Files.move(tempFile, finalFile, StandardCopyOption.REPLACE_EXISTING);
+
+            String thumbnailUrl = processThumbnail(thumbnail, finalFile.toString(), videoDir, savedVideo.getId());
 
             String relativePath = companyFolder + "/" + savedVideo.getId() + "/" + fileName;
             savedVideo.setFilePath(relativePath);
-            savedVideo.setFileName(fileName);
-            savedVideo.setFileSize(fileSize);
-            savedVideo.setFileExtension(extension);
-            savedVideo.setChecksum(checksum);
-            savedVideo.setDuration(duration);
             savedVideo.setUrlVideo("/api/video/" + savedVideo.getId() + "/stream");
             savedVideo.setThumbnail(thumbnailUrl);
-
             videoRepository.save(savedVideo);
+
             log.info("Video subido exitosamente: id={}, name={}, size={}MB, duration={}s",
                     savedVideo.getId(), name, fileSize / (1024 * 1024), duration);
 
             return videoMapper.toUploadResponseDTO(savedVideo);
         } catch (Exception e) {
-            videoRepository.delete(savedVideo);
-            log.error("Error al subir video, registro eliminado: {}", e.getMessage(), e);
+            log.error("Error al subir video: {}", e.getMessage(), e);
             throw new BadRequestException("Error al subir el video: " + e.getMessage());
+        } finally {
+            if (tempDir != null) {
+                try {
+                    deleteDirectoryRecursive(tempDir.toFile());
+                } catch (Exception e) {
+                    log.warn("No se pudo limpiar temporal: {}", tempDir);
+                }
+            }
         }
     }
 
