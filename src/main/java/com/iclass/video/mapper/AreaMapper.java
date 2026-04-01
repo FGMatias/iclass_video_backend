@@ -62,6 +62,7 @@ public class AreaMapper {
                         .id(av.getVideo().getId())
                         .name(av.getVideo().getName())
                         .urlVideo(av.getVideo().getUrlVideo())
+                        .fileExtension(av.getVideo().getFileExtension())
                         .thumbnail(av.getVideo().getThumbnail())
                         .duration(av.getVideo().getDuration())
                         .orden(av.getOrden())

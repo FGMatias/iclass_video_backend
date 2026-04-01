@@ -17,8 +17,8 @@ public class VideoSimpleDTO {
     private String urlVideo;
     private String thumbnail;
     private Integer duration;
-
     private Integer orden;
     private Long fileSize;
+    private String fileExtension;
     private String checksum;
 }

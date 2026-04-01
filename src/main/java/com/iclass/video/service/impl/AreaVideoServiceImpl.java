@@ -22,7 +22,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -102,7 +105,6 @@ public class AreaVideoServiceImpl implements AreaVideoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Area", areaId));
 
         Integer areaCompanyId = area.getBranch().getCompany().getId();
-
         List<Video> videos = videoRepository.findAllById(dto.getVideoIds());
 
         if (videos.size() != dto.getVideoIds().size()) {
@@ -115,21 +117,43 @@ public class AreaVideoServiceImpl implements AreaVideoService {
             }
         }
 
-        areaVideoRepository.deleteByArea_Id(areaId);
+        List<AreaVideo> currentPlaylist = areaVideoRepository.findByAreaWithVideos(areaId);
 
-        for (int i = 0; i < dto.getVideoIds().size(); i++) {
-            Integer videoId = dto.getVideoIds().get(i);
-            Video video = videos.stream()
-                    .filter(v -> v.getId().equals(videoId))
-                    .findFirst()
-                    .orElseThrow();
+        Map<Integer, AreaVideo> currentVideosMap = currentPlaylist.stream()
+                        .collect(Collectors.toMap(av -> av.getVideo().getId(), av -> av));
 
-            AreaVideo areaVideo = areaVideoMapper.toEntity(video, area, i + 1);
-            areaVideoRepository.save(areaVideo);
+        List<AreaVideo> toSave = new ArrayList<>();
+        List<Integer> newVideoIds = dto.getVideoIds();
+
+        for (int i = 0; i < newVideoIds.size(); i++) {
+            Integer videoId = newVideoIds.get(i);
+            AreaVideo existingAreaVideo = currentVideosMap.get(videoId);
+
+            if (existingAreaVideo != null) {
+                existingAreaVideo.setOrden(i + 1);
+                toSave.add(existingAreaVideo);
+                currentVideosMap.remove(videoId);
+            } else {
+                Video video = videos.stream()
+                        .filter(v -> v.getId().equals(videoId))
+                        .findFirst()
+                        .orElseThrow();
+
+                AreaVideo areaVideo = new AreaVideo();
+                areaVideo.setArea(area);
+                areaVideo.setVideo(video);
+                areaVideo.setOrden(i + 1);
+                toSave.add(areaVideo);
+            }
         }
 
-        log.info("Playlist sincronizada para área id={}: {} videos", areaId, dto.getVideoIds().size());
+        if (!currentVideosMap.isEmpty()) {
+            areaVideoRepository.deleteAll(currentVideosMap.values());
+        }
 
+        areaVideoRepository.saveAll(toSave);
+
+        log.info("Playlist sincronizada para área id={}: {} videos", areaId, dto.getVideoIds().size());
         eventPublisher.publishEvent(new PlayListChangedEvent(areaId, userId));
     }
 

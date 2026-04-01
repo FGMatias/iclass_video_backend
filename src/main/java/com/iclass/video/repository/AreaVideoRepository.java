@@ -2,6 +2,7 @@ package com.iclass.video.repository;
 
 import com.iclass.video.entity.AreaVideo;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -22,5 +23,7 @@ public interface AreaVideoRepository extends JpaRepository<AreaVideo, Integer> {
             "WHERE av.video.id = :videoId")
     List<Integer> findAreaIdsByVideoId(@Param("videoId") Integer videoId);
 
-    void deleteByArea_Id(Integer areaId);
+    @Modifying
+    @Query("DELETE FROM AreaVideo av WHERE av.area.id = :areaId")
+    void deleteByAreaId(@Param("areaId") Integer areaId);
 }

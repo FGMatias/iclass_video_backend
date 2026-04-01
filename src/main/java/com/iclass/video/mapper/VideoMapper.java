@@ -85,6 +85,7 @@ public class VideoMapper {
                 .thumbnail(video.getThumbnail())
                 .duration(video.getDuration())
                 .fileSize(video.getFileSize())
+                .fileExtension(video.getFileExtension())
                 .checksum(video.getChecksum())
                 .build();
     }
