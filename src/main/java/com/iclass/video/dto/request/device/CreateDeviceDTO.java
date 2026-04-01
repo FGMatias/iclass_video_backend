@@ -19,7 +19,6 @@ public class CreateDeviceDTO {
     @NotNull(message = "El tipo de dispositivo es obligatorio")
     private Integer deviceTypeId;
 
-    @NotNull(message = "El área es obligatoria")
     private Integer areaId;
 
     @NotBlank(message = "El username es obligatorio")
@@ -33,14 +32,6 @@ public class CreateDeviceDTO {
         message = "Username solo puede contener letras, números, guiones y guiones bajos"
     )
     private String deviceUsername;
-
-    @NotBlank(message = "La contraseña es obligatoria")
-    @Size(
-        min = 6,
-        max = 100,
-        message = "Password debe tener al menos 6 caracteres"
-    )
-    private String devicePassword;
 
     private String notes;
 }

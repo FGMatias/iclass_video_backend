@@ -12,18 +12,17 @@ import java.util.List;
 
 public interface DeviceService {
     List<DeviceResponseDTO> findAll();
+    List<DeviceResponseDTO> findByAreaId(Integer areaId);
+    List<DeviceResponseDTO> findByBranchId(Integer branchId);
     DeviceResponseDTO getDeviceWithCurrentArea(Integer id);
     DeviceResponseDTO create(CreateDeviceDTO dto, Integer adminUserId);
     DeviceResponseDTO update(Integer id, UpdateDeviceDTO dto);
     void delete(Integer id);
-
     void activate(Integer id);
     void deactivate(Integer id);
-
     void reassign(Integer id, DeviceAssignAreaDTO dto, Integer adminUserId);
     List<DeviceArea> getHistory(Integer id);
     DeviceSyncResponseDTO syncDevice(Integer id);
-
     DeviceAuthResponseDTO login(String deviceUsername, String devicePassword);
     void resetPassword(Integer id, String newPassword);
 }

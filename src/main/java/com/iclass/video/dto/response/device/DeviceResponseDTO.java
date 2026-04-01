@@ -18,15 +18,13 @@ public class DeviceResponseDTO {
     private String deviceUsername;
     private String deviceType;
     private Boolean isActive;
-
+    private Integer companyId;
+    private String companyName;
+    private Integer branchId;
+    private String branchName;
     private Integer currentAreaId;
     private String currentAreaName;
-    private Integer currentBranchId;
-    private String currentBranchName;
-    private Integer currentCompanyId;
-    private String currentCompanyName;
     private LocalDateTime assignedAt;
-
     private String configuredByUsername;
     private LocalDateTime lastLogin;
     private LocalDateTime lastSync;

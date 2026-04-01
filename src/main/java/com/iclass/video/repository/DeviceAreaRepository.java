@@ -1,5 +1,6 @@
 package com.iclass.video.repository;
 
+import com.iclass.video.entity.Area;
 import com.iclass.video.entity.DeviceArea;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,7 +16,8 @@ public interface DeviceAreaRepository extends JpaRepository<DeviceArea, Integer>
             "JOIN FETCH da.area a " +
             "JOIN FETCH a.branch b " +
             "JOIN FETCH b.company c " +
-            "WHERE da.device.id = :deviceId AND da.removedAt IS NULL")
+            "WHERE da.device.id = :deviceId " +
+            "AND da.removedAt IS NULL")
     Optional<DeviceArea> findCurrentAssignment(Integer deviceId);
 
     @Query("SELECT da FROM DeviceArea da " +
@@ -42,6 +44,13 @@ public interface DeviceAreaRepository extends JpaRepository<DeviceArea, Integer>
             "AND da.isCurrent = true " +
             "AND da.removedAt IS NULL")
     List<Integer> findCurrentDevicesByAreaId(@Param("areaId") Integer areaId);
+
+    @Query("SELECT da FROM DeviceArea da " +
+            "JOIN FETCH da.device d " +
+            "JOIN FETCH d.deviceType " +
+            "WHERE da.area.branch.id = :branchId " +
+            "AND da.removedAt IS NULL")
+    List<DeviceArea> findCurrentByBranchId(@Param("branchId") Integer branchId);
 
     @Query("SELECT da FROM DeviceArea da " +
             "JOIN FETCH da.device d " +

@@ -20,6 +20,7 @@ import com.iclass.video.security.JwtService;
 import com.iclass.video.service.BranchConfigService;
 import com.iclass.video.service.DeviceService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,6 +36,7 @@ public class DeviceServiceImpl implements DeviceService {
 
     private final DeviceRepository deviceRepository;
     private final DeviceAreaRepository deviceAreaRepository;
+    private final BranchRepository branchRepository;
     private final AreaRepository areaRepository;
     private final AreaVideoRepository areaVideoRepository;
     private final UserRepository userRepository;
@@ -47,11 +49,40 @@ public class DeviceServiceImpl implements DeviceService {
     private final PendingSyncEventRepository pendingSyncEventRepository;
     private final ApplicationEventPublisher eventPublisher;
 
+    @Value("${app.default-password}")
+    private String defaultPassword;
+
     @Override
     @Transactional(readOnly = true)
     public List<DeviceResponseDTO> findAll() {
         List<Device> devices = deviceRepository.findAll();
         return deviceMapper.toResponseDTOList(devices);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DeviceResponseDTO> findByAreaId(Integer areaId) {
+        if (!areaRepository.existsById(areaId)) {
+            throw new ResourceNotFoundException("Area", areaId);
+        }
+
+        List<DeviceArea> assignments = deviceAreaRepository.findCurrentByAreaId(areaId);
+        return assignments.stream()
+                .map(da -> deviceMapper.toResponseDTO(da.getDevice(), da))
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DeviceResponseDTO> findByBranchId(Integer branchId) {
+        if (!branchRepository.existsById(branchId)) {
+            throw new ResourceNotFoundException("Sucursal", branchId);
+        }
+
+        List<DeviceArea> assignments = deviceAreaRepository.findCurrentByBranchId(branchId);
+        return assignments.stream()
+                .map(da -> deviceMapper.toResponseDTO(da.getDevice(), da))
+                .toList();
     }
 
     @Override
@@ -70,9 +101,11 @@ public class DeviceServiceImpl implements DeviceService {
         DeviceType deviceType = deviceTypeRepository.findById(dto.getDeviceTypeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Tipo de dispositivo", dto.getDeviceTypeId()));
 
-        String hashedPassword = passwordEncoder.encode(dto.getDevicePassword());
+        Branch branch = area.getBranch();
 
-        Device device = deviceMapper.toEntity(dto, deviceType, admin, hashedPassword);
+        String hashedPassword = passwordEncoder.encode(defaultPassword);
+
+        Device device = deviceMapper.toEntity(dto, deviceType, admin, branch, hashedPassword);
         Device savedDevice = deviceRepository.save(device);
 
         DeviceArea assignment = DeviceArea.builder()
@@ -217,7 +250,7 @@ public class DeviceServiceImpl implements DeviceService {
                 .findCurrentAssignment(id)
                 .orElseThrow(() -> new DeviceNotAssignedException(id));
 
-        Integer branchId = currentAssignment.getArea().getBranch().getId();
+        Integer branchId = device.getBranch().getId();
         Integer areaId = currentAssignment.getArea().getId();
 
         Long lastEventId = deviceSyncEventRepository.findLastProcessedEventId(id).orElse(0L);

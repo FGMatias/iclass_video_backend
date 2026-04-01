@@ -22,9 +22,11 @@ public class DeviceMapper {
             CreateDeviceDTO dto,
             DeviceType deviceType,
             User configuredBy,
+            Branch branch,
             String hashedPassword
     ) {
         return Device.builder()
+                .branch(branch)
                 .user(configuredBy)
                 .deviceType(deviceType)
                 .deviceName(dto.getDeviceName())
@@ -38,6 +40,8 @@ public class DeviceMapper {
             Device device,
             DeviceArea currentAssignment
     ) {
+        Branch branch = device.getBranch();
+
         DeviceResponseDTO.DeviceResponseDTOBuilder builder = DeviceResponseDTO.builder()
                 .id(device.getId())
                 .deviceName(device.getDeviceName())
@@ -45,22 +49,19 @@ public class DeviceMapper {
                 .deviceUsername(device.getDeviceUsername())
                 .deviceType(device.getDeviceType().getName())
                 .isActive(device.getIsActive())
+                .branchId(branch.getId())
+                .branchName(branch.getName())
+                .companyId(device.getBranch().getId())
+                .companyName(device.getBranch().getName())
                 .lastLogin(device.getLastLogin())
                 .lastSync(device.getLastSync())
                 .createdAt(device.getCreatedAt());
 
         if (currentAssignment != null) {
-            Area area = currentAssignment.getArea();
-            Branch branch = area.getBranch();
-            Company company = branch.getCompany();
-
             builder
-                    .currentAreaId(area.getId())
-                    .currentAreaName(area.getName())
-                    .currentBranchId(branch.getId())
-                    .currentBranchName(branch.getName())
-                    .currentCompanyId(company.getId())
-                    .currentCompanyName(company.getName());
+                    .currentAreaId(currentAssignment.getId())
+                    .currentAreaName(currentAssignment.getArea().getName())
+                    .assignedAt(currentAssignment.getAssignedAt());
         }
 
         if (device.getUser() != null) {
@@ -71,18 +72,7 @@ public class DeviceMapper {
     }
 
     public DeviceResponseDTO toResponseDTO(Device device) {
-        return DeviceResponseDTO.builder()
-                .id(device.getId())
-                .deviceName(device.getDeviceName())
-                .deviceIdentifier(device.getDeviceIdentifier())
-                .deviceUsername(device.getDeviceUsername())
-                .deviceType(device.getDeviceType().getName())
-                .isActive(device.getIsActive())
-                .lastLogin(device.getLastLogin())
-                .lastSync(device.getLastSync())
-                .createdAt(device.getCreatedAt())
-                .configuredByUsername(device.getUser() != null ? device.getUser().getUsername() : null)
-                .build();
+        return toResponseDTO(device, null);
     }
 
     public void updateEntity(

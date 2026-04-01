@@ -28,8 +28,20 @@ public class DeviceController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
-    public ResponseEntity<List<DeviceResponseDTO>> findAll() {
-        List<DeviceResponseDTO> response = deviceService.findAll();
+    public ResponseEntity<List<DeviceResponseDTO>> findAll(
+            @RequestParam(required = false) Integer branchId,
+            @RequestParam(required = false) Integer areaId
+    ) {
+        List<DeviceResponseDTO> response;
+
+        if (areaId != null) {
+            response = deviceService.findByAreaId(areaId);
+        } else if (branchId != null) {
+            response = deviceService.findByBranchId(branchId);
+        } else {
+            response = deviceService.findAll();
+        }
+
         return ResponseEntity.ok(response);
     }
 
