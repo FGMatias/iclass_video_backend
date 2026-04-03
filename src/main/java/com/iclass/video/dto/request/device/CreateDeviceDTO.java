@@ -19,6 +19,7 @@ public class CreateDeviceDTO {
     @NotNull(message = "El tipo de dispositivo es obligatorio")
     private Integer deviceTypeId;
 
+    @NotNull(message = "El área es obligatoria")
     private Integer areaId;
 
     @NotBlank(message = "El username es obligatorio")
