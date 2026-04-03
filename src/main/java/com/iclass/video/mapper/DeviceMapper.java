@@ -3,6 +3,7 @@ package com.iclass.video.mapper;
 import com.iclass.video.dto.request.device.CreateDeviceDTO;
 import com.iclass.video.dto.request.device.UpdateDeviceDTO;
 import com.iclass.video.dto.response.device.DeviceAuthResponseDTO;
+import com.iclass.video.dto.response.device.DeviceInfo;
 import com.iclass.video.dto.response.device.DeviceResponseDTO;
 import com.iclass.video.dto.response.device.DeviceSyncResponseDTO;
 import com.iclass.video.dto.response.video.VideoSimpleDTO;
@@ -86,6 +87,20 @@ public class DeviceMapper {
         if (dto.getIsActive() != null) device.setIsActive(dto.getIsActive());
     }
 
+    public DeviceInfo toDeviceInfo(Device device) {
+        if (device == null) return null;
+
+        return DeviceInfo.builder()
+                .id(device.getId())
+                .deviceName(device.getDeviceName())
+                .deviceUsername(device.getDeviceUsername())
+                .deviceType(device.getDeviceType().getName())
+                .isActive(device.getIsActive())
+                .lastLogin(device.getLastLogin())
+                .lastSync(device.getLastSync())
+                .build();
+    }
+
     public DeviceAuthResponseDTO toAuthResponseDTO(
             Device device,
             DeviceArea currentAssignment,
@@ -141,6 +156,12 @@ public class DeviceMapper {
     public List<DeviceResponseDTO> toResponseDTOList(List<Device> devices) {
         return devices.stream()
                 .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<DeviceInfo> toDeviceInfoList(List<Device> devices) {
+        return devices.stream()
+                .map((this::toDeviceInfo))
                 .collect(Collectors.toList());
     }
 

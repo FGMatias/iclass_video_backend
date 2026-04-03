@@ -5,6 +5,7 @@ import com.iclass.video.dto.request.branch.UpdateBranchDTO;
 import com.iclass.video.dto.response.area.AreaResponseDTO;
 import com.iclass.video.dto.response.branch.BranchDetailDTO;
 import com.iclass.video.dto.response.branch.BranchResponseDTO;
+import com.iclass.video.dto.response.device.DeviceInfo;
 import com.iclass.video.dto.response.user.UserResponseDTO;
 import com.iclass.video.entity.Branch;
 import com.iclass.video.entity.Company;
@@ -50,7 +51,8 @@ public class BranchMapper {
     public BranchDetailDTO toDetailDTO(
             Branch branch,
             List<UserResponseDTO> administrators,
-            List<AreaResponseDTO> areas
+            List<AreaResponseDTO> areas,
+            List<DeviceInfo> devices
     ) {
         return BranchDetailDTO.builder()
                 .id(branch.getId())
@@ -64,6 +66,7 @@ public class BranchMapper {
                 .updatedAt(branch.getUpdatedAt())
                 .administrators(administrators)
                 .areas(areas)
+                .devices(devices)
                 .build();
     }
 

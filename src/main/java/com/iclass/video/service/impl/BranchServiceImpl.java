@@ -6,20 +6,16 @@ import com.iclass.video.dto.request.branch.UpdateBranchDTO;
 import com.iclass.video.dto.response.area.AreaResponseDTO;
 import com.iclass.video.dto.response.branch.BranchDetailDTO;
 import com.iclass.video.dto.response.branch.BranchResponseDTO;
+import com.iclass.video.dto.response.device.DeviceInfo;
 import com.iclass.video.dto.response.user.UserResponseDTO;
-import com.iclass.video.entity.Area;
-import com.iclass.video.entity.Branch;
-import com.iclass.video.entity.Company;
-import com.iclass.video.entity.UserBranch;
+import com.iclass.video.entity.*;
 import com.iclass.video.exception.DuplicateEntityException;
 import com.iclass.video.exception.ResourceNotFoundException;
 import com.iclass.video.mapper.AreaMapper;
 import com.iclass.video.mapper.BranchMapper;
+import com.iclass.video.mapper.DeviceMapper;
 import com.iclass.video.mapper.UserMapper;
-import com.iclass.video.repository.AreaRepository;
-import com.iclass.video.repository.BranchRepository;
-import com.iclass.video.repository.CompanyRepository;
-import com.iclass.video.repository.UserBranchRepository;
+import com.iclass.video.repository.*;
 import com.iclass.video.service.BranchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,9 +30,11 @@ public class BranchServiceImpl implements BranchService {
     private final CompanyRepository companyRepository;
     private final UserBranchRepository userBranchRepository;
     private final AreaRepository areaRepository;
+    private final DeviceRepository deviceRepository;
     private final BranchMapper branchMapper;
     private final UserMapper userMapper;
     private final AreaMapper areaMapper;
+    private final DeviceMapper deviceMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -112,7 +110,10 @@ public class BranchServiceImpl implements BranchService {
         List<Area> areas = areaRepository.findByBranchId(id);
         List<AreaResponseDTO> areaDTOs = areaMapper.toResponseDTOList(areas);
 
-        return branchMapper.toDetailDTO(branch, administrators, areaDTOs);
+        List<Device> devices = deviceRepository.findByBranchId(id);
+        List<DeviceInfo> deviceInfos = deviceMapper.toDeviceInfoList(devices);
+
+        return branchMapper.toDetailDTO(branch, administrators, areaDTOs, deviceInfos);
     }
 
     @Override
