@@ -2,7 +2,6 @@ package com.iclass.video.dto.response.company;
 
 import com.iclass.video.dto.response.branch.BranchResponseDTO;
 import com.iclass.video.dto.response.user.UserResponseDTO;
-import com.iclass.video.dto.response.user.UserSimpleDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -11,6 +11,4 @@ import lombok.NoArgsConstructor;
 public class DeviceAssignAreaDTO {
     @NotNull(message = "El área es obligatoria")
     private Integer areaId;
-
-    private String notes;
 }

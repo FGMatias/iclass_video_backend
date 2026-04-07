@@ -11,10 +11,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DeviceInfo {
+public class DeviceInfoDTO {
     private Integer id;
     private String deviceName;
     private String deviceUsername;
+    private String currentAreaName;
     private String deviceType;
     private Boolean isActive;
     private LocalDateTime lastLogin;

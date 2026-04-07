@@ -33,6 +33,4 @@ public class CreateDeviceDTO {
         message = "Username solo puede contener letras, números, guiones y guiones bajos"
     )
     private String deviceUsername;
-
-    private String notes;
 }

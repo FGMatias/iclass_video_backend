@@ -1,8 +1,6 @@
 package com.iclass.video.dto.response.area;
 
-import com.iclass.video.dto.response.device.DeviceInfo;
-import com.iclass.video.dto.response.device.DeviceResponseDTO;
-import com.iclass.video.dto.response.video.VideoResponseDTO;
+import com.iclass.video.dto.response.device.DeviceInfoDTO;
 import com.iclass.video.dto.response.video.VideoSimpleDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,7 +27,7 @@ public class AreaDetailDTO {
     private Integer totalDevices;
     private Integer totalDuration;
     private List<VideoSimpleDTO> playlist;
-    private List<DeviceInfo> devices;
+    private List<DeviceInfoDTO> devices;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

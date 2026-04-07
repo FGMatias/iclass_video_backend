@@ -1,9 +1,8 @@
 package com.iclass.video.dto.response.branch;
 
 import com.iclass.video.dto.response.area.AreaResponseDTO;
-import com.iclass.video.dto.response.device.DeviceInfo;
+import com.iclass.video.dto.response.device.DeviceInfoDTO;
 import com.iclass.video.dto.response.user.UserResponseDTO;
-import com.iclass.video.dto.response.user.UserSimpleDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,7 +25,7 @@ public class BranchDetailDTO {
     private Boolean isActive;
     private List<UserResponseDTO> administrators;
     private List<AreaResponseDTO> areas;
-    private List<DeviceInfo> devices;
+    private List<DeviceInfoDTO> devices;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
