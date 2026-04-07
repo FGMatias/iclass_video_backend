@@ -48,6 +48,7 @@ public interface DeviceAreaRepository extends JpaRepository<DeviceArea, Integer>
     @Query("SELECT da FROM DeviceArea da " +
             "JOIN FETCH da.device d " +
             "JOIN FETCH d.deviceType " +
+            "JOIN FETCH da.area a " +
             "WHERE da.area.branch.id = :branchId " +
             "AND da.removedAt IS NULL")
     List<DeviceArea> findCurrentByBranchId(@Param("branchId") Integer branchId);

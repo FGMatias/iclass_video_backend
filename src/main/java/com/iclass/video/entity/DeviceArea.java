@@ -43,9 +43,6 @@ public class DeviceArea {
     @Column(name = "is_current", insertable = false, updatable = false)
     private Boolean isCurrent;
 
-    @Column(name = "notes", columnDefinition = "TEXT")
-    private String notes;
-
     @PrePersist
     protected void onCreate() {
         assignedAt = LocalDateTime.now();
