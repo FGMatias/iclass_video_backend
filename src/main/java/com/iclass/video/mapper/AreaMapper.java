@@ -4,7 +4,7 @@ import com.iclass.video.dto.request.area.CreateAreaDTO;
 import com.iclass.video.dto.request.area.UpdateAreaDTO;
 import com.iclass.video.dto.response.area.AreaDetailDTO;
 import com.iclass.video.dto.response.area.AreaResponseDTO;
-import com.iclass.video.dto.response.device.DeviceInfo;
+import com.iclass.video.dto.response.device.DeviceInfoDTO;
 import com.iclass.video.dto.response.video.VideoSimpleDTO;
 import com.iclass.video.entity.Area;
 import com.iclass.video.entity.AreaVideo;
@@ -69,11 +69,12 @@ public class AreaMapper {
                         .build())
                 .collect(Collectors.toList());
 
-        List<DeviceInfo> devices = currentDevices.stream()
-                .map(da -> DeviceInfo.builder()
+        List<DeviceInfoDTO> devices = currentDevices.stream()
+                .map(da -> DeviceInfoDTO.builder()
                         .id(da.getDevice().getId())
                         .deviceName(da.getDevice().getDeviceName())
                         .deviceUsername(da.getDevice().getDeviceUsername())
+                        .currentAreaName(da.getArea().getName())
                         .deviceType(da.getDevice().getDeviceType().getName())
                         .isActive(da.getDevice().getIsActive())
                         .lastLogin(da.getDevice().getLastLogin())

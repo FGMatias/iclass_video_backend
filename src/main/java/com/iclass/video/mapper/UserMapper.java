@@ -4,7 +4,7 @@ import com.iclass.video.dto.request.user.CreateUserDTO;
 import com.iclass.video.dto.request.user.UpdateUserDTO;
 import com.iclass.video.dto.response.user.UserAuthResponseDTO;
 import com.iclass.video.dto.response.user.UserResponseDTO;
-import com.iclass.video.dto.response.user.UserSimpleDTO;
+import com.iclass.video.dto.response.user.UserInfoDTO;
 import com.iclass.video.entity.Role;
 import com.iclass.video.entity.User;
 import org.springframework.stereotype.Component;
@@ -78,8 +78,8 @@ public class UserMapper {
                 .build();
     }
 
-    public UserSimpleDTO toSimpleDTO(User user) {
-        return UserSimpleDTO.builder()
+    public UserInfoDTO toSimpleDTO(User user) {
+        return UserInfoDTO.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .name(user.getName())
@@ -93,7 +93,7 @@ public class UserMapper {
                 .collect(Collectors.toList());
     }
 
-    public List<UserSimpleDTO> toSimpleDTOList(List<User> users) {
+    public List<UserInfoDTO> toSimpleDTOList(List<User> users) {
         return users.stream()
                 .map(this::toSimpleDTO)
                 .collect(Collectors.toList());

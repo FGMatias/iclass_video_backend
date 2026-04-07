@@ -3,17 +3,17 @@ package com.iclass.video.mapper;
 import com.iclass.video.dto.request.device.CreateDeviceDTO;
 import com.iclass.video.dto.request.device.UpdateDeviceDTO;
 import com.iclass.video.dto.response.device.DeviceAuthResponseDTO;
-import com.iclass.video.dto.response.device.DeviceInfo;
+import com.iclass.video.dto.response.device.DeviceInfoDTO;
 import com.iclass.video.dto.response.device.DeviceResponseDTO;
 import com.iclass.video.dto.response.device.DeviceSyncResponseDTO;
 import com.iclass.video.dto.response.video.VideoSimpleDTO;
-import com.iclass.video.entity.*;
 import com.iclass.video.entity.*;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -87,18 +87,23 @@ public class DeviceMapper {
         if (dto.getIsActive() != null) device.setIsActive(dto.getIsActive());
     }
 
-    public DeviceInfo toDeviceInfo(Device device) {
+    public DeviceInfoDTO toDeviceInfo(Device device, String currentAreaName) {
         if (device == null) return null;
 
-        return DeviceInfo.builder()
+        return DeviceInfoDTO.builder()
                 .id(device.getId())
                 .deviceName(device.getDeviceName())
                 .deviceUsername(device.getDeviceUsername())
+                .currentAreaName(currentAreaName)
                 .deviceType(device.getDeviceType().getName())
                 .isActive(device.getIsActive())
                 .lastLogin(device.getLastLogin())
                 .lastSync(device.getLastSync())
                 .build();
+    }
+
+    public DeviceInfoDTO toDeviceInfo(Device device) {
+        return toDeviceInfo(device, null);
     }
 
     public DeviceAuthResponseDTO toAuthResponseDTO(
@@ -159,9 +164,12 @@ public class DeviceMapper {
                 .collect(Collectors.toList());
     }
 
-    public List<DeviceInfo> toDeviceInfoList(List<Device> devices) {
+    public List<DeviceInfoDTO> toDeviceInfoList(
+            List<Device> devices,
+            Map<Integer, String> deviceAreaMap
+    ) {
         return devices.stream()
-                .map((this::toDeviceInfo))
+                .map(device -> toDeviceInfo(device, deviceAreaMap.get(device.getId())))
                 .collect(Collectors.toList());
     }
 
