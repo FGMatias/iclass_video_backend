@@ -6,7 +6,7 @@ import com.iclass.video.dto.request.branch.UpdateBranchDTO;
 import com.iclass.video.dto.response.area.AreaResponseDTO;
 import com.iclass.video.dto.response.branch.BranchDetailDTO;
 import com.iclass.video.dto.response.branch.BranchResponseDTO;
-import com.iclass.video.dto.response.device.DeviceInfo;
+import com.iclass.video.dto.response.device.DeviceInfoDTO;
 import com.iclass.video.dto.response.user.UserResponseDTO;
 import com.iclass.video.entity.*;
 import com.iclass.video.exception.DuplicateEntityException;
@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +33,7 @@ public class BranchServiceImpl implements BranchService {
     private final UserBranchRepository userBranchRepository;
     private final AreaRepository areaRepository;
     private final DeviceRepository deviceRepository;
+    private final DeviceAreaRepository deviceAreaRepository;
     private final BranchMapper branchMapper;
     private final UserMapper userMapper;
     private final AreaMapper areaMapper;
@@ -111,7 +114,13 @@ public class BranchServiceImpl implements BranchService {
         List<AreaResponseDTO> areaDTOs = areaMapper.toResponseDTOList(areas);
 
         List<Device> devices = deviceRepository.findByBranchId(id);
-        List<DeviceInfo> deviceInfos = deviceMapper.toDeviceInfoList(devices);
+        List<DeviceArea> activeAssigments = deviceAreaRepository.findCurrentByBranchId(id);
+        Map<Integer, String> deviceAreaMap = activeAssigments.stream()
+                .collect(Collectors.toMap(
+                        da -> da.getDevice().getId(),
+                        da -> da.getArea().getName()
+                ));
+        List<DeviceInfoDTO> deviceInfos = deviceMapper.toDeviceInfoList(devices, deviceAreaMap);
 
         return branchMapper.toDetailDTO(branch, administrators, areaDTOs, deviceInfos);
     }

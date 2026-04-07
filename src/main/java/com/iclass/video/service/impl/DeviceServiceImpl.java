@@ -112,7 +112,6 @@ public class DeviceServiceImpl implements DeviceService {
                 .device(savedDevice)
                 .area(area)
                 .assignedBy(admin)
-                .notes(dto.getNotes())
                 .build();
 
         deviceAreaRepository.save(assignment);
@@ -204,7 +203,6 @@ public class DeviceServiceImpl implements DeviceService {
                 .device(device)
                 .area(newArea)
                 .assignedBy(admin)
-                .notes(dto.getNotes())
                 .build();
 
         deviceAreaRepository.save(newAssignment);

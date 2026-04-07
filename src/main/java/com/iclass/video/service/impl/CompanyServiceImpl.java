@@ -7,7 +7,6 @@ import com.iclass.video.dto.response.branch.BranchResponseDTO;
 import com.iclass.video.dto.response.company.CompanyDetailDTO;
 import com.iclass.video.dto.response.company.CompanyResponseDTO;
 import com.iclass.video.dto.response.user.UserResponseDTO;
-import com.iclass.video.dto.response.user.UserSimpleDTO;
 import com.iclass.video.entity.Branch;
 import com.iclass.video.entity.Company;
 import com.iclass.video.entity.UserCompany;

@@ -88,6 +88,13 @@ public class DeviceController {
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/{id}/activate")
+    @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
+    public ResponseEntity<Void> activate(@PathVariable Integer id) {
+        deviceService.activate(id);
+        return ResponseEntity.ok().build();
+    }
+
     @PutMapping("/{id}/deactivate")
     @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
     public ResponseEntity<Void> deactivate(@PathVariable Integer id) {
