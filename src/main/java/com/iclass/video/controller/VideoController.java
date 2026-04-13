@@ -73,7 +73,7 @@ public class VideoController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
     public ResponseEntity<VideoResponseDTO> update(
             @PathVariable Integer id,
             @RequestBody @Valid UpdateVideoDTO dto
