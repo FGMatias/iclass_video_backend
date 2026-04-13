@@ -61,7 +61,7 @@ public class AreaServiceImpl implements AreaService {
     @Override
     @Transactional
     public AreaResponseDTO create(CreateAreaDTO dto) {
-        if (areaRepository.existsByName(dto.getName())) {
+        if (areaRepository.existsByNameIgnoreCaseAndBranchId(dto.getName(), dto.getBranchId())) {
             throw new DuplicateEntityException("Area", "nombre", dto.getName());
         }
 
@@ -81,7 +81,7 @@ public class AreaServiceImpl implements AreaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Area", id));
 
         if (dto.getName() != null && !dto.getName().equals(area.getName())) {
-            if (areaRepository.existsByName(dto.getName())) {
+            if (areaRepository.existsByNameIgnoreCaseAndBranchId(dto.getName(), area.getBranch().getId())) {
                 throw new DuplicateEntityException("Area", "nombre", id);
             }
         }

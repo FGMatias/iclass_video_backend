@@ -386,7 +386,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByUsername(dto.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + dto.getUsername()));
 
-        String token = jwtService.generateToken(
+        String token = jwtService.generateTokenForUser(
                 new org.springframework.security.core.userdetails.User(
                         user.getUsername(),
                         user.getPassword(),

@@ -10,4 +10,5 @@ import java.util.List;
 public interface AreaRepository extends JpaRepository<Area, Integer> {
     Boolean existsByName(String name);
     List<Area> findByBranchId(Integer branchId);
+    boolean existsByNameIgnoreCaseAndBranchId(String name, Integer branchId);
 }
