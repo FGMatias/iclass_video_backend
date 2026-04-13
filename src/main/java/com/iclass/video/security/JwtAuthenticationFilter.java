@@ -1,12 +1,17 @@
 package com.iclass.video.security;
 
+import com.iclass.video.entity.Device;
+import com.iclass.video.exception.ResourceNotFoundException;
+import com.iclass.video.repository.DeviceRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -14,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Logger;
 
 @Component
@@ -22,6 +28,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final Logger logger = Logger.getLogger(JwtAuthenticationFilter.class.getName());
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final DeviceRepository deviceRepository;
 
     @Override
     protected void doFilterInternal(
@@ -42,9 +49,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             username = jwtService.extractUsername(jwt);
+            String entityType = jwtService.extractEntityType(jwt);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+                UserDetails userDetails;
+
+                if ("DEVICE".equals(entityType)) {
+                    Device device = deviceRepository.findByDeviceUsername(username)
+                            .orElseThrow(() -> new ResourceNotFoundException("Dispositivo no encontrado"));
+
+                    userDetails = new User(
+                            device.getDeviceUsername(),
+                            device.getDevicePassword(),
+                            device.getIsActive(),
+                            true,
+                            true,
+                            true,
+                            List.of(new SimpleGrantedAuthority("ROLE_DEVICE"))
+                    );
+                } else {
+                    userDetails = this.userDetailsService.loadUserByUsername(username);
+                }
 
                 if (jwtService.validateToken(jwt, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(

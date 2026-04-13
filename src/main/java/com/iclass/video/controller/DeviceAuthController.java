@@ -17,10 +17,7 @@ public class DeviceAuthController {
 
     @PostMapping("/login")
     public ResponseEntity<DeviceAuthResponseDTO> login(@RequestBody @Valid LoginDTO dto) {
-        DeviceAuthResponseDTO response = deviceService.login(
-                dto.getUsername(),
-                dto.getPassword()
-        );
+        DeviceAuthResponseDTO response = deviceService.login(dto);
 
         return ResponseEntity.ok(response);
     }

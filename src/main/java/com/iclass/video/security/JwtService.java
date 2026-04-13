@@ -23,13 +23,24 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private Long jwtExpiration;
 
-    public String generateToken(UserDetails userDetails) {
+    private static final String CLAIM_ENTITY_TYPE = "entityType";
+    private static final String TYPE_USER = "USER";
+    private static final String TYPE_DEVICE = "DEVICE";
+
+    public String generateTokenForUser(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put(CLAIM_ENTITY_TYPE, TYPE_USER);
         return createToken(claims, userDetails.getUsername());
     }
 
-    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        return createToken(extraClaims, userDetails.getUsername());
+    public String generateTokenForDevice(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put(CLAIM_ENTITY_TYPE, TYPE_DEVICE);
+        return createToken(claims, userDetails.getUsername());
+    }
+
+    public String extractEntityType(String token) {
+        return extractClaim(token, claims -> claims.get(CLAIM_ENTITY_TYPE, String.class));
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
