@@ -4,6 +4,7 @@ import com.iclass.video.dto.request.auth.ResetPasswordDTO;
 import com.iclass.video.dto.request.device.CreateDeviceDTO;
 import com.iclass.video.dto.request.device.DeviceAssignAreaDTO;
 import com.iclass.video.dto.request.device.UpdateDeviceDTO;
+import com.iclass.video.dto.response.device.DeviceInfoDTO;
 import com.iclass.video.dto.response.device.DeviceResponseDTO;
 import com.iclass.video.dto.response.device.DeviceSyncResponseDTO;
 import com.iclass.video.entity.DeviceArea;
@@ -28,11 +29,11 @@ public class DeviceController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('SUPER_ADMINISTRADOR', 'ADMINISTRADOR_EMPRESA', 'ADMINISTRADOR_SUCURSAL')")
-    public ResponseEntity<List<DeviceResponseDTO>> findAll(
+    public ResponseEntity<List<DeviceInfoDTO>> findAll(
             @RequestParam(required = false) Integer branchId,
             @RequestParam(required = false) Integer areaId
     ) {
-        List<DeviceResponseDTO> response;
+        List<DeviceInfoDTO> response;
 
         if (areaId != null) {
             response = deviceService.findByAreaId(areaId);
@@ -103,9 +104,10 @@ public class DeviceController {
     }
 
     @PostMapping("/{id}/sync")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ROLE_DEVICE')")
     public ResponseEntity<DeviceSyncResponseDTO> syncDevice(@PathVariable Integer id) {
-        DeviceSyncResponseDTO response = deviceService.syncDevice(id);
+        String deviceUsername = securityUtils.getCurrentUsername();
+        DeviceSyncResponseDTO response = deviceService.syncDevice(id, deviceUsername);
         return ResponseEntity.ok(response);
     }
 

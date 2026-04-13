@@ -1,14 +1,17 @@
 package com.iclass.video.service.impl;
 
+import com.iclass.video.dto.request.auth.LoginDTO;
 import com.iclass.video.dto.request.device.DeviceAssignAreaDTO;
 import com.iclass.video.dto.request.device.CreateDeviceDTO;
 import com.iclass.video.dto.request.device.UpdateDeviceDTO;
 import com.iclass.video.dto.response.device.DeviceAuthResponseDTO;
+import com.iclass.video.dto.response.device.DeviceInfoDTO;
 import com.iclass.video.dto.response.device.DeviceResponseDTO;
 import com.iclass.video.dto.response.device.DeviceSyncResponseDTO;
 import com.iclass.video.entity.*;
 import com.iclass.video.event.DeviceDisabledEvent;
 import com.iclass.video.event.DeviceReassignedEvent;
+import com.iclass.video.exception.UnauthorizedException;
 import com.iclass.video.repository.*;
 import com.iclass.video.entity.*;
 import com.iclass.video.exception.DeviceNotAssignedException;
@@ -19,10 +22,12 @@ import com.iclass.video.repository.*;
 import com.iclass.video.security.JwtService;
 import com.iclass.video.service.BranchConfigService;
 import com.iclass.video.service.DeviceService;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,40 +53,43 @@ public class DeviceServiceImpl implements DeviceService {
     private final DeviceSyncEventRepository deviceSyncEventRepository;
     private final PendingSyncEventRepository pendingSyncEventRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final EntityManager entityManager;
 
     @Value("${app.default-password}")
     private String defaultPassword;
 
     @Override
     @Transactional(readOnly = true)
-    public List<DeviceResponseDTO> findAll() {
+    public List<DeviceInfoDTO> findAll() {
         List<Device> devices = deviceRepository.findAll();
-        return deviceMapper.toResponseDTOList(devices);
+        return devices.stream()
+                .map(deviceMapper::toDeviceInfo)
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DeviceResponseDTO> findByAreaId(Integer areaId) {
+    public List<DeviceInfoDTO> findByAreaId(Integer areaId) {
         if (!areaRepository.existsById(areaId)) {
             throw new ResourceNotFoundException("Area", areaId);
         }
 
         List<DeviceArea> assignments = deviceAreaRepository.findCurrentByAreaId(areaId);
         return assignments.stream()
-                .map(da -> deviceMapper.toResponseDTO(da.getDevice(), da))
+                .map(da -> deviceMapper.toDeviceInfo(da.getDevice(), da.getArea().getName()))
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DeviceResponseDTO> findByBranchId(Integer branchId) {
+    public List<DeviceInfoDTO> findByBranchId(Integer branchId) {
         if (!branchRepository.existsById(branchId)) {
             throw new ResourceNotFoundException("Sucursal", branchId);
         }
 
         List<DeviceArea> assignments = deviceAreaRepository.findCurrentByBranchId(branchId);
         return assignments.stream()
-                .map(da -> deviceMapper.toResponseDTO(da.getDevice(), da))
+                .map(da -> deviceMapper.toDeviceInfo(da.getDevice(), da.getArea().getName()))
                 .toList();
     }
 
@@ -197,7 +205,8 @@ public class DeviceServiceImpl implements DeviceService {
 
         currentAssignment.setRemovedAt(LocalDateTime.now());
         currentAssignment.setRemovedBy(admin);
-        deviceAreaRepository.save(currentAssignment);
+        deviceAreaRepository.saveAndFlush(currentAssignment);
+        entityManager.clear();
 
         DeviceArea newAssignment = DeviceArea.builder()
                 .device(device)
@@ -240,9 +249,13 @@ public class DeviceServiceImpl implements DeviceService {
 
     @Override
     @Transactional
-    public DeviceSyncResponseDTO syncDevice(Integer id) {
+    public DeviceSyncResponseDTO syncDevice(Integer id, String deviceUsername) {
         Device device = deviceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Dispositivo", id));
+
+        if (!device.getDeviceUsername().equals(deviceUsername)) {
+            throw new UnauthorizedException("No tienes permiso para sincronizar este dispositivo");
+        }
 
         DeviceArea currentAssignment = deviceAreaRepository
                 .findCurrentAssignment(id)
@@ -290,15 +303,15 @@ public class DeviceServiceImpl implements DeviceService {
 
     @Override
     @Transactional
-    public DeviceAuthResponseDTO login(String deviceUsername, String devicePassword) {
-        Device device = deviceRepository.findByDeviceUsername(deviceUsername)
+    public DeviceAuthResponseDTO login(LoginDTO dto) {
+        Device device = deviceRepository.findByDeviceUsername(dto.getUsername())
                 .orElseThrow(() -> new BadCredentialsException("Credenciales inválidas"));
 
         if (!device.getIsActive()) {
             throw new BadCredentialsException("Dispositivo deshabilitado");
         }
 
-        if (!passwordEncoder.matches(devicePassword, device.getDevicePassword())) {
+        if (!passwordEncoder.matches(dto.getPassword(), device.getDevicePassword())) {
             throw new BadCredentialsException("Credenciales inválidas");
         }
 
@@ -316,11 +329,11 @@ public class DeviceServiceImpl implements DeviceService {
         device.setLastLogin(LocalDateTime.now());
         deviceRepository.save(device);
 
-        String token = jwtService.generateToken(
+        String token = jwtService.generateTokenForDevice(
                 new org.springframework.security.core.userdetails.User(
                         device.getDeviceUsername(),
                         device.getDevicePassword(),
-                        List.of()
+                        List.of(new SimpleGrantedAuthority("ROLE_DEVICE"))
                 )
         );
 
